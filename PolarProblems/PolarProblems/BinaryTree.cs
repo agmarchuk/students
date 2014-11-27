@@ -1,20 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using PolarDB;
-using System.Threading;
-using System.Diagnostics;
-using System.IO;
 
 namespace PolarProblems
 {
-    class BinaryTree : PxCell
+    public class BinaryTree : PxCell
     {
-        internal static readonly object[] Empty;
 
-        private readonly Func<object, PxEntry, int> elementDepth;
+        internal static readonly object[] Empty;
 
         /// <summary>
         /// 
@@ -23,7 +17,7 @@ namespace PolarProblems
         /// <param name="elementDepth">функция сравнения элемента дерева и добавляемого объекта</param>
         /// <param name="filePath"></param>
         /// <param name="readOnly"></param>
-        public BinaryTree(PType ptElement, Func<object, PxEntry, int> elementDepth, string filePath,  bool readOnly = true)
+        public BinaryTree(PType ptElement, Func<object, PxEntry, int> elementDepth, string filePath, bool readOnly = true)
             : base(PTypeTree(ptElement), filePath, readOnly)
         {
             this.elementDepth = elementDepth;
@@ -31,9 +25,16 @@ namespace PolarProblems
 
         static BinaryTree()
         {
-            Empty = new object[] {0, null};
+            Empty = new object[] { 0, null };
         }
 
+        /// <summary>
+        ///  Тип
+        /// BTree<T> = empty^none,
+        /// pair^{element: T, less: BTree<T>, more: BTree<T>};
+        /// </summary>
+        /// <param name="tpElement"></param>
+        /// <returns></returns>
         private static PTypeUnion PTypeTree(PType tpElement)
         {
             var tpBtree = new PTypeUnion();
@@ -49,7 +50,15 @@ namespace PolarProblems
             };
             return tpBtree;
         }
-/*
+
+        public static int counter = 0;
+        private readonly Func<object, PxEntry, int> elementDepth;
+
+        /// <summary>
+        /// путь от последнего узла с ненулевым балансом до добавленой вершины (не включая её) составляет пары: <PxEntry /> ,баланса и значение баланса.
+        /// </summary>
+        private readonly List<KeyValuePair<PxEntry, int>> listEntries4Balance = new List<KeyValuePair<PxEntry, int>>();
+
         /// <summary>
         /// Поместить элемент в дерево в соответствии со значением функции сравнения,
         ///  вернуть ссылку на голову нового дерева
@@ -117,6 +126,286 @@ namespace PolarProblems
             else if (b == -2)
                 FixWithRotateLeft(lastUnBalanceNode, listEntries4Balance);
             //  return true;
-        }*/
+        }
+
+        /*
+         * пригодится, когда дерево оооочень большое будет, так ое, что  список переполнит оперативную память
+                    private void ChangeBalanceSlowlyLongSequence(object element, PxEntry lastUnBalanceNode)
+                    {
+                        var nodeBalance = lastUnBalanceNode;
+                        //   foreach (bool isLeft in listEntries4Balance)
+                        int com = 0;
+                        while (nodeBalance.Tag() != 0 && (com=elementDepth(element, nodeBalance.UElementUnchecked(1).Field(0))) != 0)
+                        {
+                            var nodeEntry = nodeBalance.UElementUnchecked(1);
+                            var balanceEntry = nodeEntry.Field(3);
+                            if (com < 0)
+                            {
+                                balanceEntry.Set((int) balanceEntry.Get().Value + 1);
+                                nodeBalance = nodeEntry.Field(1);
+                            }
+                            else
+                            {
+                                balanceEntry.Set((int) balanceEntry.Get().Value - 1);
+                                nodeBalance = nodeEntry.Field(2);
+                            }
+                        }
+                    }
+
+                  */
+
+        /// <summary>
+        /// балансирует дерево поворотом влево
+        /// </summary>           
+        /// <param name="root">PxEntry балансируемой вершины с балансом=-2</param>
+        /// <param name="entries">balance entries of path from prime node to added(excluded from entries), and them balaces</param>
+        private static void FixWithRotateLeft(PxEntry root, List<KeyValuePair<PxEntry, int>> entries)
+        {
+            var rootEntry = root.UElementUnchecked(1);
+            var r = rootEntry.Field(2); //Right;
+            var rEntry = r.UElementUnchecked(1);
+            var rl = rEntry.Field(1); //right of Left;
+            var rBalance = entries[1].Value;
+            if (rBalance == 1)
+            {
+
+                var rlEntry = rl.UElementUnchecked(1);
+                rlEntry.Field(3).Set(0);
+                //запоминаем RL
+                var rlold = rl.GetHead();
+                int rlBalance = (entries.Count == 2 ? 0 : entries[2].Value);
+                //Изменяем правую
+                rl.SetHead(rlEntry.Field(2).GetHead());
+                entries[1].Key.Set(Math.Min(0, -rlBalance));
+                //запоминаем правую
+                var oldR = r.GetHead();
+                //изменяем корневую
+                r.SetHead(rlEntry.Field(1).GetHead());
+                entries[0].Key.Set(Math.Max(0, -rlBalance));
+                //запоминаем корневую
+                var rootOld = root.GetHead();
+                //RL теперь корень
+                root.SetHead(rlold);
+                rootEntry = root.UElementUnchecked(1);
+                //подставляем запомненые корень и правую.
+                rootEntry.Field(1).SetHead(rootOld);
+                rootEntry.Field(2).SetHead(oldR);
+                return;
+            }
+            if (rBalance == -1)
+            {
+                entries[0].Key.Set(0);
+                entries[1].Key.Set(0);
+            }
+            else //0
+            {
+                entries[0].Key.Set(-1);
+                entries[1].Key.Set(1);
+            }
+
+            var rOld = r.GetHead();
+            r.SetHead(rl.GetHead());
+            rl.SetHead(root.GetHead());
+            root.SetHead(rOld);
+        }
+
+        /// <summary>
+        /// балансирует дерево поворотом вправо
+        /// </summary>
+        /// <param name="root">PxEntry балансируемой вершины с балансом=2</param>
+        /// <param name="entries"> пары: PxEntry содержащая баланс и баланс, соответсвующие пути от балансируемой вершины (включительно) до добавленой не включительно</param>
+        private static void FixWithRotateRight(PxEntry root, List<KeyValuePair<PxEntry, int>> entries)
+        {
+            var rootEntry = root.UElementUnchecked(1);
+            var l = rootEntry.Field(1); //Left;
+            var lEntry = l.UElementUnchecked(1);
+            var lr = lEntry.Field(2); //right of Left;
+            var leftBalance = entries[1].Value;
+            if (leftBalance == -1)
+            {
+                var lrEntry = lr.UElementUnchecked(1);
+                var lrold = lr.GetHead();
+                int lrBalance = (entries.Count == 2 ? 0 : entries[2].Value);
+                lr.SetHead(lrEntry.Field(1).GetHead());
+                entries[1].Key.Set(Math.Max(0, -lrBalance));
+                var oldR = l.GetHead();
+                l.SetHead(lrEntry.Field(2).GetHead());
+                entries[0].Key.Set(Math.Min(0, -lrBalance));
+                var rootOld = root.GetHead();
+                root.SetHead(lrold);
+                rootEntry = root.UElementUnchecked(1);
+                rootEntry.Field(2).SetHead(rootOld);
+                rootEntry.Field(1).SetHead(oldR);
+                rootEntry.Field(3).Set(0);
+                return;
+            }
+            if (leftBalance == 1) // 1
+            {
+                entries[0].Key.Set(0);
+                entries[1].Key.Set(0);
+            }
+            else // 0
+            {
+                entries[0].Key.Set(1);
+                entries[1].Key.Set(-1);
+            }
+            var lOld = l.GetHead();
+            l.SetHead(lr.GetHead());
+            lr.SetHead(root.GetHead());
+            root.SetHead(lOld);
+        }
+
+        public void Fill(PxEntry elementsEntry, Func<object, object> orderKeySelector, bool editable)
+        {
+            Fill(elementsEntry.Elements()
+                .Select(oe => oe.Get()), orderKeySelector, editable);
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="elements"></param>
+        /// <param name="orderKeySelector"></param>
+        /// <param name="editable"></param>
+        public void Fill(IEnumerable<object> elements, Func<object, object> orderKeySelector, bool editable)
+        {
+            object[] elementsSorted = elements
+                .OrderBy(orderKeySelector)
+                .ToArray();
+            Clear();
+            int h = 0;
+            var treeNodes = editable ? ToTreeObjectWithBalance(new ToTreeObjectParams(elementsSorted, 0, elementsSorted.Length), ref h) : ToTreeObject(elementsSorted, 0, elementsSorted.Length);
+            Fill2(treeNodes);
+        }
+
+        private static object[] ToTreeObject(object[] elements, int beg, int len)
+        {
+            if (len == 0) return Empty;
+            if (len == 1)
+                return new object[]
+                {
+                    1, new[]
+                    {
+                        // запись
+                        elements[beg], // значение
+                        Empty,
+                        Empty,
+                        0
+                    }
+                };
+            int half = len / 2;
+            return new object[]
+            {
+                1, new[]
+                {
+                    // запись
+                    elements[beg + half], // значение
+                    ToTreeObject(elements, beg, half),
+                    ToTreeObject(elements, beg + half + 1, len - half - 1),
+                    0
+                }
+            };
+        }
+
+        public class ToTreeObjectParams
+        {
+            public ToTreeObjectParams(object[] elements, int beg, int len)
+            {
+                this.Elements = elements;
+                this.Beg = beg;
+                this.Len = len;
+            }
+
+            public object[] Elements;
+
+            public int Beg;
+
+            public int Len;
+        }
+
+        private static object[] ToTreeObjectWithBalance(ToTreeObjectParams @params, ref int h)
+        {
+            if (@params.Len == 0) return Empty;
+            h++;
+            if (@params.Len == 1)
+                return new object[]
+                {
+                    1, new[]
+                    {
+                        // запись
+                        @params.Elements[@params.Beg], // значение
+                        Empty,
+                        Empty,
+                        0
+                    }
+                };
+            int leftH = 0, rightH = 0, l = @params.Len;
+            @params.Len /= 2;
+            var left = ToTreeObjectWithBalance(@params, ref leftH);
+            @params.Beg += @params.Len + 1;
+            @params.Len = l - @params.Len - 1;
+            return new object[]
+            {
+                1, new[]
+                {
+                    // запись
+                    @params.Elements[@params.Beg + @params.Len/2], // значение
+                    left,
+                    ToTreeObjectWithBalance(@params, ref rightH),
+                    leftH - rightH
+                }
+            };
+        }
+
+        public PxEntry BinarySearch(Func<PxEntry, int> eDepth)
+        {
+            var entry = Root;
+            while (true)
+            {
+                if (entry.Tag() == 0) return new PxEntry(entry.Typ, Int64.MinValue, entry.fis);
+                PxEntry elementEntry = entry.UElementUnchecked(1).Field(0);
+                // Можно сэкономить на запоминании входа для uelement'а
+                int level = eDepth(elementEntry);
+                if (level == 0) return elementEntry;
+                entry = entry.UElementUnchecked(1).Field(level < 0 ? 1 : 2);
+            }
+        }
+
+        public bool Equals(object obj, Func<object, object, bool> elementsComparer)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != GetType()) return false;
+            return Equals(((BinaryTree)obj).Root, Root, elementsComparer);
+        }
+
+        private static bool Equals(PxEntry left, PxEntry right, Func<object, object, bool> elementsComparer)
+        {
+            int tag;
+            if ((tag = left.Tag()) != right.Tag()) return false;
+            if (tag == 0) return true;
+            var r = right.UElement();
+            var l = right.UElement();
+            bool @equals = elementsComparer(r.Field(0).Get(), l.Field(0).Get());
+            // bool b = (int) r.Field(3).Get().Value == (int) l.Field(3).Get().Value;
+            return @equals
+                //   && b
+                   && Equals(r.Field(1), l.Field(1))
+                   && Equals(r.Field(2), l.Field(2));
+        }
+        public static int H(PxEntry tree)
+        {
+            return tree.Tag() == 0
+                ? 0
+                : 1 + Math.Max(H(tree.UElementUnchecked(1).Field(1)),
+                    H(tree.UElementUnchecked(1).Field(2)));
+        }
+    }
+
+
+
+    public class EntriesPair
+    {
+        public PxEntry Left;
+        public PxEntry Right;
     }
 }

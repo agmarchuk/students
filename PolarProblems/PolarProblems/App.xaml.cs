@@ -27,7 +27,8 @@ namespace PolarProblems
         }
         private void Application_Exit(object sender, ExitEventArgs e)
         {
-            //WorkMain.Айлбибэкмазафака();
+            WorkMain wm = new WorkMain();
+            wm.FinalExit();
         }
 
     }

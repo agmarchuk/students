@@ -51,7 +51,7 @@ namespace PolarProblems
             try { comm.ExecuteNonQuery(); }
             catch (Exception ex) { message = ex.Message; }
             connection.Close();
-            if (message != null) MessageBox.Show(message);
+            //if (message != null) MessageBox.Show(message);
 
         }
 

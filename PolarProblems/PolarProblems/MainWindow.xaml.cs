@@ -39,6 +39,14 @@ namespace PolarProblems
             bool rez = wm.GoLoadPolar(Npotok);
             sw.Stop();
             if (rez == true) Label1.Content = sw.ElapsedMilliseconds;
+
+            sw.Restart();
+            rez = wm.GoSearchPolar((string)SearchString.Content);
+
+            sw.Stop();
+
+            if (rez == true) Label5.Content = sw.ElapsedMilliseconds;
+            else Label5.Content = "fail";
         }
 
         //Решение MySQL
@@ -121,8 +129,6 @@ namespace PolarProblems
         }
 
 
-
-
         private void Problem1_Click(object sender, RoutedEventArgs e)
         {
             Button1_Click(sender, e);
@@ -137,6 +143,12 @@ namespace PolarProblems
             Npotok = (int)((Slider)sender).Value;
         }
 
-        
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            WorkMain wm = new WorkMain();
+            wm.FinalExit();
+        }
+
+                
     }
 }

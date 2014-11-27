@@ -1,7 +1,7 @@
 ﻿<Window x:Class="PolarProblems.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="PolarProblems" Height="252" Width="721" WindowStartupLocation="CenterScreen">
+        Title="PolarProblems" Height="252" Width="721" WindowStartupLocation="CenterScreen" Closed="Window_Closed">
 
     <Grid>
         <GroupBox>
@@ -27,8 +27,8 @@
                 <Label x:Name="SearchString" Content="Вася123" HorizontalAlignment="Left" Margin="117,10,0,0" VerticalAlignment="Top" Height="25" Width="231" BorderThickness="1" BorderBrush="Black"/>
                 <Label Content="Строка поиска" HorizontalAlignment="Left" Margin="22,10,0,0" VerticalAlignment="Top" Height="25"/>
                 <Label Content="Количество записей " HorizontalAlignment="Left" Margin="365,11,0,0" VerticalAlignment="Top" Height="25"/>
-                <Slider x:Name="SliderRec" IsSnapToTickEnabled="True" TickPlacement="TopLeft"  HorizontalAlignment="Left" IsSelectionRangeEnabled="True" TickFrequency="10000"  Minimum="0" Maximum="1000000" Margin="495,12,0,0" VerticalAlignment="Top" Width="174" ValueChanged="Slider_ValueChanged"/>
-                <Label Content="1000" HorizontalAlignment="Left" Margin="481,-6,0,0" VerticalAlignment="Top" Height="25" Width="37"/>
+                <Slider x:Name="SliderRec" IsSnapToTickEnabled="True" TickPlacement="TopLeft"  HorizontalAlignment="Left" IsSelectionRangeEnabled="True" TickFrequency="10000"  Minimum="1000" Maximum="1000000" Margin="495,12,0,0" VerticalAlignment="Top" Width="174" ValueChanged="Slider_ValueChanged"/>
+                <Label Content="1000" HorizontalAlignment="Left" Margin="474,-6,0,0" VerticalAlignment="Top" Height="25" Width="44"/>
                 <Label Content="1000000" HorizontalAlignment="Left" Margin="639,-6,0,0" VerticalAlignment="Top" Height="25" Width="57"/>
                 <Label x:Name="CurrValue" Content="{Binding ElementName=SliderRec,Path=Value}" HorizontalContentAlignment="Center" HorizontalAlignment="Left" Margin="523,-7,0,0" VerticalAlignment="Top" Height="25" Width="116" FontWeight="Bold"/>
             </Grid>
