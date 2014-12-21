@@ -1,7 +1,7 @@
 ﻿<Window x:Class="PolarProblems.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="PolarProblems" Height="252" Width="721" WindowStartupLocation="CenterScreen" Closed="Window_Closed">
+        Title="PolarProblems" Height="276" Width="721" WindowStartupLocation="CenterScreen" Closed="Window_Closed">
 
     <Grid>
         <GroupBox>
@@ -9,7 +9,7 @@
                 <Button x:Name="Problem1" Background="Lavender" Click="Problem1_Click">Задача №1</Button>
             </GroupBox.Header>
 
-            <Grid Margin="-12,-2,-2,0" Width="696" HorizontalAlignment="Center" Height="199" VerticalAlignment="Top">
+            <Grid Margin="-2,-2,7,-16" Width="696" HorizontalAlignment="Center" Height="241" VerticalAlignment="Top">
                 <Button x:Name="Button1" Content="Решить с помощью PolarDB" HorizontalAlignment="Left" Margin="22,66,0,0" VerticalAlignment="Top" Width="175" Click="Button1_Click" Height="25"/>
                 <Label x:Name="Label1" Content="" HorizontalContentAlignment="Right" HorizontalAlignment="Left" Margin="217,66,0,0" VerticalAlignment="Top" Height="25" Width="224" BorderThickness="1" BorderBrush="Black"/>
                 <Button x:Name="Button2" Content="Решить с помощью MySql" HorizontalAlignment="Left" Margin="22,96,0,0" VerticalAlignment="Top" Width="175" Height="25" Click="Button2_Click"/>
@@ -24,13 +24,18 @@
                 <Label x:Name="Label6" Content="" HorizontalContentAlignment="Right" HorizontalAlignment="Left" Margin="460,96,0,0" VerticalAlignment="Top" Height="25" Width="224" BorderThickness="1" BorderBrush="Black"/>
                 <Label x:Name="Label7" Content="" HorizontalContentAlignment="Right" HorizontalAlignment="Left" Margin="460,126,0,0" VerticalAlignment="Top" Height="25" Width="224" BorderThickness="1" BorderBrush="Black"/>
                 <Label x:Name="Label8" Content="" HorizontalContentAlignment="Right" HorizontalAlignment="Left" Margin="460,156,0,0" VerticalAlignment="Top" Height="25" Width="224" BorderThickness="1" BorderBrush="Black"/>
-                <Label x:Name="SearchString" Content="Вася123" HorizontalAlignment="Left" Margin="117,10,0,0" VerticalAlignment="Top" Height="25" Width="231" BorderThickness="1" BorderBrush="Black"/>
+                <Label x:Name="SearchString" Content="Вася999" HorizontalAlignment="Left" Margin="117,10,0,0" VerticalAlignment="Top" Height="25" Width="231" BorderThickness="1" BorderBrush="Black"/>
                 <Label Content="Строка поиска" HorizontalAlignment="Left" Margin="22,10,0,0" VerticalAlignment="Top" Height="25"/>
                 <Label Content="Количество записей " HorizontalAlignment="Left" Margin="365,11,0,0" VerticalAlignment="Top" Height="25"/>
-                <Slider x:Name="SliderRec" IsSnapToTickEnabled="True" TickPlacement="TopLeft"  HorizontalAlignment="Left" IsSelectionRangeEnabled="True" TickFrequency="10000"  Minimum="1000" Maximum="1000000" Margin="495,12,0,0" VerticalAlignment="Top" Width="174" ValueChanged="Slider_ValueChanged"/>
+                
+                <Slider x:Name="SliderRec" IsSnapToTickEnabled="True" TickPlacement="TopLeft"  HorizontalAlignment="Left" 
+                        IsSelectionRangeEnabled="True" TickFrequency="10000"  Minimum="1000" Maximum="1000000" Margin="495,12,0,0" 
+                        VerticalAlignment="Top" Width="174" ValueChanged="Slider_ValueChanged"/>
+                
                 <Label Content="1000" HorizontalAlignment="Left" Margin="474,-6,0,0" VerticalAlignment="Top" Height="25" Width="44"/>
                 <Label Content="1000000" HorizontalAlignment="Left" Margin="639,-6,0,0" VerticalAlignment="Top" Height="25" Width="57"/>
                 <Label x:Name="CurrValue" Content="{Binding ElementName=SliderRec,Path=Value}" HorizontalContentAlignment="Center" HorizontalAlignment="Left" Margin="523,-7,0,0" VerticalAlignment="Top" Height="25" Width="116" FontWeight="Bold"/>
+                <Button x:Name="ButtonCharts" Content="Построить график" HorizontalAlignment="Left" Height="25" Margin="21,186,0,0" VerticalAlignment="Top" Width="176" Click="ButtonCharts_Click"/>
             </Grid>
         </GroupBox>
 

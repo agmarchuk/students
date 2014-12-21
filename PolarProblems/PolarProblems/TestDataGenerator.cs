@@ -22,12 +22,33 @@ namespace PolarProblems
         public IEnumerable<XElement> Generate()
         {
             Random rnd = new Random(seed);
+            DateTime dt = new DateTime(2000, 10, 12);
             for (int i = 0; i < npersons; ++i)
             {
                 yield return new XElement("birthdates", new XAttribute("id", i),
                             new XElement("name", "Вася" + rnd.Next(npersons)),
-                            new XElement("birth", (long)( 20 + rnd.Next(80) ) )
+                            new XElement("birth", dt.AddDays(rnd.Next(5000)).ToBinary())
                             );
+            }
+        }
+
+        public struct Birthdates
+        {
+            public string name;
+            public long birthdate;
+        }
+
+        public IEnumerable<Birthdates> Generate2()
+        {
+            Random rnd = new Random(seed);
+            DateTime dt = new DateTime(2000, 10, 12);
+            Birthdates bds;
+           
+            for (int i = 0; i < npersons; ++i)
+            {
+                bds.name = "Вася" + rnd.Next(npersons);
+                bds.birthdate = dt.AddDays(rnd.Next(5000)).ToBinary();
+                yield return bds;
             }
         }
     }

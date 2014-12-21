@@ -129,6 +129,27 @@ CREATE INDEX person_birth ON birthdates(birth);";
             return rez;
         }
 
+        public bool SearchByNameFirst(string searchstring, string table)
+        {
+            connection.Open();
+            var comm = connection.CreateCommand();
+            //comm.CommandText = "SELECT * FROM " + table + " WHERE name LIKE N'" + searchstring + "%'";
+            comm.CommandText = "SELECT * FROM " + table + " WHERE name LIKE '" + searchstring + "%' LIMIT 1,1";
+            var reader = comm.ExecuteReader();
+            bool rez;
+
+            //while (reader.Read())
+            //{
+            //    var oname = reader.GetValue(1);
+            //    string name = reader.GetString(1);
+            //    //Console.WriteLine("id={0} name={1} fd={2}", reader.GetValue(0), reader.GetValue(1), reader.GetValue(2));
+
+            //}
+            if (reader.Read()) rez = true; else rez = false;
+            connection.Close();
+            return rez;
+        }
+
         //public int GetRelationByPerson(int id)
         //{
         //    connection.Open();
