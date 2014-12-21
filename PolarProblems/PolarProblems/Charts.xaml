@@ -1,0 +1,13 @@
+﻿<Window x:Class="PolarProblems.Charts"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:wfi="clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration"
+        xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
+        xmlns:dvc="clr-namespace:System.Windows.Forms.DataVisualization.Charting;assembly=System.Windows.Forms.DataVisualization"
+        Title="Charts" Height="415.464" Width="648.454" WindowStartupLocation="CenterScreen" Loaded="Window_Loaded">
+    <StackPanel>
+        <WindowsFormsHost>
+                <dvc:Chart x:Name="chart" />
+        </WindowsFormsHost>
+    </StackPanel>
+</Window>
