@@ -27,19 +27,17 @@ namespace PolarProblems
 
 //PolarDB-------------------------------------------------------------------------------
         //Инициализация БД
+        //TODO:определить когда создавать БД - в момент запуска приложения или по требованию
         public void InitPolar()
         {
-             PType tp_bd = new PTypeRecord(
+             this.tp_bd = new PTypeRecord(
                 new NamedType("name", new PType(PTypeEnumeration.sstring)),
                 new NamedType("birthdate", new PType(PTypeEnumeration.longinteger))
             );
             
-            PaCell table_bd_init = new PaCell(new PTypeSequence(tp_bd), path + "birthdates.pac", false);
- 
-            this.table_bd = table_bd_init;
-            this.tp_bd = tp_bd;
-          }
-
+            this.table_bd = new PaCell(new PTypeSequence(tp_bd), path + "birthdates.pac", false);
+        }
+        
         //Разогрев БД
         public void PolarWarmUp()
         {
@@ -86,7 +84,7 @@ namespace PolarProblems
         //Наполнение данными БД
         public bool GoLoadPolar(int Npotok)
         {
-            if (table_bd.IsEmpty)
+            if (!table_bd.IsEmpty)
             {
                 table_bd.Clear();
                 table_bd.Fill(new object[0]);
@@ -118,7 +116,7 @@ namespace PolarProblems
                 //сравниваем поля записей из опорной таблицы
                 long birth1 = (long)ob1;
                 long birth2 = (long)ob2;
-
+                
                 if (birth1 < birth2) return -1;
                 if (birth1 > birth2) return 1;
                 return 0;
@@ -204,8 +202,8 @@ namespace PolarProblems
             //string s = (string)entt.Field(0).Get();
             //MessageBox.Show(s);
 
-            long count = TestSearchAll(BTInd_name, srch, 0).Count();
-            Console.WriteLine("count()={0}", count); // count()=100
+            //long count = TestSearchAll(BTInd_name, srch, 0).Count();
+            //Console.WriteLine("count()={0}", count); // count()=100
             return true;
         }
         public bool GoSearchPolar_birth(long brth)

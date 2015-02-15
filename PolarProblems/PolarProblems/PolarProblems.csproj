@@ -61,7 +61,7 @@
     </Reference>
     <Reference Include="PolarDB, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Users\Makc\Desktop\students\Common\DLLs\PolarDB.dll</HintPath>
+      <HintPath>..\..\Common\DLLs\PolarDB.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
