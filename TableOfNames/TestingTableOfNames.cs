@@ -66,17 +66,28 @@ namespace TableOfNames
             TableOfNames ton = new TableOfNames(path);
 
             UInt16 portion = 10;
-            TestDataGenerator tdg = new TestDataGenerator(portion);
-
+            //TestDataGenerator tdg = new TestDataGenerator(portion);
+            Random rnd = new Random();
             for (uint i = 0; i < 10; i++)
             {
-                string[] arr = tdg.Generate().ToArray();
+                HashSet<string> hs = new HashSet<string>();
+                for (int j = 0; j < portion; j++)
+                {
+                    string s = "s" + rnd.Next(100000000);
+                    hs.Add(s);
+                }
+                string[] arr = hs.ToArray();
                 Array.Sort<string>(arr);
                 ton.InsertPortion(arr);
             }
 
+            //foreach (object[] pair in ton.tableNames.Root.ElementValues())
+            //{
+            //    Console.WriteLine((long)pair[0] +" "+ (string)pair[1]);
+            //}
 
-            //ton.CreateIndex();
+            ton.CreateIndex();
+
 
             Console.ReadKey();
         }
