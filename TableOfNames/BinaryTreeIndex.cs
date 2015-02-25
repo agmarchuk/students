@@ -9,8 +9,6 @@ namespace TableOfNames
     {
 
         internal static readonly object[] Empty;
-        private PaCell table;
-        private int ifield;
 
         /// <summary>
         /// 
@@ -20,13 +18,11 @@ namespace TableOfNames
         /// <param name="filePath"></param>
         /// <param name="readOnly"></param>
         /// <param name="ifield">номер поля в БД для сравнения</param>
-        public BinaryTreeIndex(PType ptElement, PaCell table_bd, int ifield, 
+        public BinaryTreeIndex(PType ptElement,
                Func<object, object, int> elementCompare, string filePath, bool readOnly = true)
                : base(PTypeTree(ptElement), filePath, readOnly)
         {
             this.elementCompare = elementCompare;
-            this.table = table_bd;
-            this.ifield = ifield;
         }
 
         static BinaryTreeIndex()
@@ -60,22 +56,6 @@ namespace TableOfNames
         public static int counter = 0;
         public readonly Func<object, object, int> elementCompare;
 
-        private int elementDepth(object v1, PxEntry en2)
-        {
-            PaEntry entry = table.Root.Element(0);
-            long index = (long)en2.Get();
-
-            entry.offset = (long)v1;
-
-            //сравниваем поля записей из опорной таблицы
-            object ob1 = entry.Get();
-
-            entry.offset = index;
-            object ob2 = entry.Get();
-
-            return elementCompare(ob1, ob2);//вернётся: -1,0,1
-        }
-
         /// <summary>
         /// путь от последнего узла с ненулевым балансом до добавленой вершины (не включая её) составляет пары: <PxEntry /> ,баланса и значение баланса.
         /// </summary>
@@ -98,7 +78,7 @@ namespace TableOfNames
                 h++;
                 var nodeEntry = node.UElementUnchecked(1);
                 counter++;
-                int cmp = elementDepth(element, nodeEntry.Field(0));
+                int cmp = elementCompare(element, nodeEntry.Field(0).Get());
                 PxEntry balanceEntry = nodeEntry.Field(3);
                 var balance = (int)balanceEntry.Get();
                 if (cmp == 0)
@@ -388,7 +368,7 @@ namespace TableOfNames
                 PxEntry elementEntry = entry.UElementUnchecked(1).Field(0);
                 // Можно сэкономить на запоминании входа для uelement'а
                 int level = eDepth(elementEntry);
-                if (level == 0) return elementEntry;
+                if (level == 0) return elementEntry;//нашёлся элемент
                 entry = entry.UElementUnchecked(1).Field(level < 0 ? 1 : 2);
             }
         }

@@ -23,71 +23,75 @@ namespace TableOfNames
         //    }
         //}
 
-        //private static string GetStringById(PaCell baseTable,PaCell indexTable, long id)
-        //{
-        //    return (string)baseTable.Root.Element(id).Get();
-        //}
-
-        //private static PaEntry TestSearch(PaCell baseTable, BinaryTreeIndex cell, object ob)
-        //{
-        //    PaEntry entry = baseTable.Root.Element(0);
-        //    bool Founded = false;
-
-        //    PxEntry found = cell.BinarySearch(pe =>
-        //    {
-        //        entry.offset = (long)pe.Get();
-
-        //        object get = entry.Get();
-
-        //        int rezcmp = cell.elementCompare(ob, get);
-        //        if (rezcmp == 0) Founded = true;
-
-        //        return rezcmp;
-        //    });
-        //    if (Founded == true) entry.offset = (long)found.Get();
-        //    else entry.offset = 0;
-
-        //    return entry;
-        //}
-
-        //private static long GetIdByString(PaCell baseTable, BinaryTreeIndex indexTable, string srchStr)
-        //{
-        //    PaEntry entt = baseTable.Root.Element(0);
-
-        //    entt = TestSearch(baseTable, indexTable, srchStr);//вернется офсет на первый найденный элемент в БД
-
-        //    //TODO: исправить костыль
-        //    if (entt.offset != 0) return (long)((entt.offset - baseTable.Root.Element(0).offset) / 8 - 1);
-        //    else return 0L;
-        //}
-
         static void Main(string[] args)
         {
+            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
             TableOfNames ton = new TableOfNames(path);
-
-            UInt16 portion = 10;
-            //TestDataGenerator tdg = new TestDataGenerator(portion);
             Random rnd = new Random();
-            for (uint i = 0; i < 10; i++)
+
+            uint portion = 100000;
+            uint countPortions = 10;
+
+            Console.WriteLine("Начался процесс добавления рандомных данных...");
+            for (uint i = 0; i < countPortions; i++)
             {
                 HashSet<string> hs = new HashSet<string>();
-                for (int j = 0; j < portion; j++)
+
+                for (uint j = 0; j < portion; j++)
                 {
-                    string s = "s" + rnd.Next(100000000);
+                    string s = "s" + rnd.Next(10000000);
                     hs.Add(s);
                 }
                 string[] arr = hs.ToArray();
                 Array.Sort<string>(arr);
+
+                sw.Start();
                 ton.InsertPortion(arr);
+                sw.Stop();
             }
 
             //foreach (object[] pair in ton.tableNames.Root.ElementValues())
             //{
-            //    Console.WriteLine((long)pair[0] +" "+ (string)pair[1]);
+            //    Вывод таблицы имен
+            //    Console.WriteLine((long)pair[0] + " " + (string)pair[1]);
             //}
+            Console.WriteLine("Загрузка закончена. Время={0}", sw.ElapsedMilliseconds);
 
-            ton.CreateIndex();
+            sw.Restart();
+            Console.WriteLine("\nПостроение индексов...");
+            ton.SlowCreateIndex();
+            sw.Stop();
+            Console.WriteLine("Индексы построены. Время={0}", sw.ElapsedMilliseconds);
 
+            //Console.WriteLine();
+            //ton.TreeShow();
+            //Console.WriteLine();
+
+            sw.Reset();
+            int N = (int)ton.GetCount();
+
+            Console.WriteLine("\nПоиск строки 1000 раз...");
+            for (int i = 0; i < 1000; ++i)
+            {
+                int id = rnd.Next(N);
+                sw.Start();
+                ton.GetStringById(id);
+                sw.Stop();
+                //Console.WriteLine("Искомая строка: {0}", ton.GetStringById(id));
+            }
+            Console.WriteLine("Поиск строки по id. Время={0}", sw.ElapsedMilliseconds);
+
+            sw.Reset();
+            Console.WriteLine("\nПоиск id 1000 раз...");
+            for (int i = 0; i < 1000; ++i)
+            {
+                string s = "s" + rnd.Next(100000000);
+                sw.Start();
+                ton.GetIdByString(s);
+                sw.Stop();
+                //Console.WriteLine("Искомый id строки {0} равен = {1}", s, ton.GetIdByString(s));
+            }
+            Console.WriteLine("Поиск id по строке. Время={0}", sw.ElapsedMilliseconds);
 
             Console.ReadKey();
         }
