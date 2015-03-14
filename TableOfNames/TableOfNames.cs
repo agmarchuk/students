@@ -18,25 +18,34 @@ namespace TableOfNames
         private PaEntry SearchString(string srch)
         {
             PaEntry entry = tableNames.Root.Element(0);
-            var get = (long)binTreeInd.Root.UElement().Field(0).Get();
+            //var get = (long)binTreeInd.Root.UElement().Field(0).Get();
 
             //Console.WriteLine("TreeRoot: {0}", get);
 
+            int hash = srch.GetHashCode();
+
             PxEntry found = binTreeInd.BinarySearch(pe =>
             {
-                entry.offset = (long)pe.Get();
+                object[] node = (object[])pe.Get();
 
-                object getStr = entry.Field(1).Get();
+                if (hash == (int)node[1])
+                {
+                    entry.offset = (long)node[0];
 
-                //Console.WriteLine("Found: {0}",getStr);
+                    object getStr = entry.Field(1).Get();
 
-                int resultCompare = String.Compare((string)getStr, srch, StringComparison.Ordinal); //srch.CompareTo(getStr);
-                
-                return resultCompare;
+                    //Console.WriteLine("Found: {0}",getStr);
+
+                    int resultCompare = String.Compare((string)getStr, srch, StringComparison.Ordinal); //srch.CompareTo(getStr);
+
+                    return resultCompare;
+                }
+                else
+                    return ((hash < (int)node[1]) ? -1 : 1);
             });
 
-            if (!found.IsEmpty) 
-                entry.offset = (long)found.Get();
+            if (!found.IsEmpty)
+                entry.offset = (long)((object[])found.Get())[0];
             else 
                 entry.offset = Int64.MinValue;
 
@@ -86,7 +95,8 @@ namespace TableOfNames
             //задаём тип для записи в ячейку БД
             tp = new PTypeSequence(new PTypeRecord(
                 new NamedType("id",new PType(PTypeEnumeration.longinteger)),
-                new NamedType("string",new PType(PTypeEnumeration.sstring)))
+                new NamedType("string",new PType(PTypeEnumeration.sstring)),
+                new NamedType("deleted", new PType(PTypeEnumeration.boolean)))
             );
 
             //создаём БД
@@ -103,25 +113,43 @@ namespace TableOfNames
                 new NamedType("id", new PType(PTypeEnumeration.longinteger)))
             );
 
-            index = new PaCell(tp_id, path + "index.pac", false);
+            //узел дерева состоит из офсета и хешкода
+            PType binTreeType = new PTypeRecord(
+                new NamedType("offset", new PType(PTypeEnumeration.longinteger)),
+                new NamedType("hash", new PType(PTypeEnumeration.integer))
+            );
 
-            PType binTreeType = new PType(PTypeEnumeration.longinteger);
-
+            //Компаратор для офсетов на строки
             Func<object, object, int> elementCompare = (object ob1, object ob2) =>
             {
-                PaEntry entry = tableNames.Root.Element(0);
-                long offset1 = (long)(ob1);
-                long offset2 = (long)(ob2);
+                object[] node1 = (object[])ob1;
+                int hash1 = (int)node1[1];
 
-                object[] pair1 = (object[])entry.Get();
-                entry.offset = offset1;
-                string name1 = (string)pair1[1];
-                entry.offset = offset2;
-                object[] pair2 = (object[])entry.Get();
-                string name2 = (string)pair2[1];
+                object[] node2 = (object[])ob2;
+                int hash2 = (int)node2[1];
 
-                return String.Compare(name1, name2, StringComparison.Ordinal);//вернётся: -1,0,1
+                if (hash1 == hash2) //идем в опорную таблицу, если хеши равны
+                {
+                    PaEntry entry = tableNames.Root.Element(0);
+                    long offset1 = (long)node1[0];
+                    long offset2 = (long)node2[0];
+
+                    object[] pair1 = (object[])entry.Get();
+                    entry.offset = offset1;
+                    string name1 = (string)pair1[1];
+                    entry.offset = offset2;
+                    object[] pair2 = (object[])entry.Get();
+                    string name2 = (string)pair2[1];
+
+                    return String.Compare(name1, name2, StringComparison.Ordinal);//вернётся: -1,0,1
+                }
+                else
+                    return ((hash1 < hash2) ? -1 : 1);
+               
             };
+
+            //Индексы
+            index = new PaCell(tp_id, path + "index.pac", false);
             binTreeInd = new BinaryTreeIndex(binTreeType, elementCompare, path + "IndexNames.pac",false);
         }
 
@@ -133,7 +161,9 @@ namespace TableOfNames
             foreach (PaEntry ent in tableNames.Root.Elements())
             {
                 index.Root.AppendElement(new object[] { ent.offset, ent.Field(0).Get() });
-                binTreeInd.Add(ent.offset);
+
+                var hash = ent.Field(1).Get().GetHashCode();
+                binTreeInd.Add(new object[] { ent.offset, hash });
 
                 //Console.WriteLine("offset на строку в опорной таблице: {0}", ent.offset);
                // Console.WriteLine("Количество узлов " + binTreeInd.Root.Elements().Count<PTypeUnion>(binTreeInd.Root.Elements()));
@@ -143,7 +173,6 @@ namespace TableOfNames
             //Сортировка офсетов по id строк
             index.Root.SortByKey<long>(ob => (long)((object[])ob)[1]);
         }
-
 
 
         public void CreateIndex()
@@ -157,9 +186,11 @@ namespace TableOfNames
                 object[] pair = (object[])ob;
                 index.Root.AppendElement(new object[] { off, (long)pair[0] });
 
-                //Console.WriteLine("offset на строку в опорной таблице: {0}", off);
+                Console.WriteLine("offset на строку в опорной таблице: {0}", off);
 
-                binTreeInd.Add(off);//повторяются оффсеты, возможно баг?!
+                binTreeInd.Add(new object[] { off, 1});
+
+                ///binTreeInd.Add(off);//повторяются оффсеты, возможно баг?!
                 return true;
             });
             index.Flush();
@@ -167,7 +198,34 @@ namespace TableOfNames
             //Сортировка офсетов по id строк
             index.Root.SortByKey<long>(ob => (long)((object[])ob)[1]);
         }
-        
+
+        public void LoadTable(uint port, uint cntport)
+        {
+            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            Random rnd = new Random();
+
+            uint portion = port;
+            uint countPortions = cntport;
+
+            for (uint i = 0; i < countPortions; i++)
+            {
+                HashSet<string> hs = new HashSet<string>();
+
+                for (uint j = 0; j < portion; j++)
+                {
+                    string s = "s" + rnd.Next(10000000);
+                    hs.Add(s);
+                }
+                string[] arr = hs.ToArray();
+                Array.Sort<string>(arr);
+
+                sw.Start();
+                InsertPortion(arr);
+                sw.Stop();
+            }
+            Console.WriteLine("Загрузка закончена. Время={0}", sw.ElapsedMilliseconds);
+        }
+
         public Dictionary<string, long> InsertPortion(string[] sortedArray)
         {
             Dictionary<string, long> dictionary = new Dictionary<string, long>();
@@ -197,7 +255,7 @@ namespace TableOfNames
                     if (cmp < 0)
                     {
                         // используем новый код
-                        object[] newPair = new object[] { newCode, nameFromPortion };
+                        object[] newPair = new object[] { newCode, nameFromPortion, false };
                         temp.Root.AppendElement(newPair);
                         newCode++;
                         dictionary.Add((string)newPair[1], (long)newPair[0]);
@@ -206,7 +264,7 @@ namespace TableOfNames
                     {
                         dictionary.Add((string)pair[1], (long)pair[0]);
                     }
-                    indexName++;
+                    ++indexName;
                     if (indexName < sortedArray.Length)
                         nameFromPortion = sortedArray[indexName];
                     else
@@ -218,7 +276,7 @@ namespace TableOfNames
             while (indexName < sortedArray.Length)
             {
                 nameFromPortion = sortedArray[indexName++];
-                object[] newPair = new object[] { newCode, nameFromPortion };
+                object[] newPair = new object[] { newCode, nameFromPortion, false };
                 temp.Root.AppendElement(newPair);
                 newCode++;
                 dictionary.Add((string)newPair[1], (long)newPair[0]);

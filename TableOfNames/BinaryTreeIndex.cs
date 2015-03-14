@@ -359,7 +359,7 @@ namespace TableOfNames
             };
         }
 
-        public PxEntry BinarySearch(Func<PxEntry, int> eDepth)
+        public PxEntry BinarySearch(Func<PxEntry, int> comparer)
         {
             var entry = Root;
             while (true)
@@ -367,7 +367,7 @@ namespace TableOfNames
                 if (entry.Tag() == 0) return new PxEntry(entry.Typ, Int64.MinValue, entry.fis);
                 PxEntry elementEntry = entry.UElementUnchecked(1).Field(0);
                 // Можно сэкономить на запоминании входа для uelement'а
-                int level = eDepth(elementEntry);
+                int level = comparer(elementEntry);
                 if (level == 0) return elementEntry;//нашёлся элемент
                 entry = entry.UElementUnchecked(1).Field(level < 0 ? 1 : 2);
             }
