@@ -15,7 +15,7 @@ namespace TableOfNamesSQL
         //путь до базы
         private const string path = "../../../Databases/";
         //путь до файла результатов теста
-        private const string ResultsPath = "../../../TableOfNamesSQL/ResultRunSQL.txt";
+        private const string ResultsPath = "../../../TableOfNamesSQL/";
 
         public static void Run(ISQLDB db, int NumberData)
         {
@@ -46,71 +46,79 @@ namespace TableOfNamesSQL
             }
             Console.WriteLine("Поиск 1000 раз строки по id. Время={0}", sw.ElapsedMilliseconds);
 
-            //sw.Reset();
-            //for (int i = 0; i < 1000; ++i)
-            //{
-            //    string s = "s" + rnd.Next(2 * NumberData);
-            //    sw.Start();
-            //    db.SearchByNameFirst(s, "TestStrings");
-            //    sw.Stop();
-            //}
-            //Console.WriteLine("Поиск 1000 раз id по строке. Время={0}", sw.ElapsedMilliseconds);
+            sw.Reset();
+            for (int i = 0; i < 1000; ++i)
+            {
+                string s = "s" + rnd.Next(2 * NumberData);
+                sw.Start();
+                db.SearchByNameFirst(s, "TestStrings");
+                sw.Stop();
+            }
+            Console.WriteLine("Поиск 1000 раз id по строке. Время={0}", sw.ElapsedMilliseconds);
         }
 
         static void Main(string[] args)
         {
 
             SQLite sqlite = null;
-            //MySQL  mysql  = null;
+            MySQL  mysql  = null;
             MSSQL mssql = null;
             TextWriter standardOutput = Console.Out;
             StreamWriter outf = null;
-            try
-            {
-                outf = new StreamWriter(ResultsPath);
-                Console.WriteLine("Запуск теста для SQL DB. Результат пишется в файл {0}",
-                                    Path.GetFileNameWithoutExtension(ResultsPath));
 
-                Console.SetOut(outf);
+            int [] dataSize = new int[]{100000,500000,1000000,1500000,2000000,3000000,5000000,10000000,100000000,1000000000};
+            Console.WriteLine("Запуск теста для SQL DB. Результат пишется в файл {0}",
+                                        Path.GetFileNameWithoutExtension(ResultsPath));
 
-                int N = 10;
-                Console.WriteLine("Кол-во данных: {0}", N);
+            for (int i = 0; i <dataSize.Length; ++i )
+                try
+                {
+                    int N = dataSize[i];
+                    outf = new StreamWriter(string.Format(ResultsPath + "ResultRunSQL_[{0}].txt", N));
 
+                    Console.SetOut(outf);
 
-                sqlite = new SQLite(@"Data Source=" + path + @"sqlite.db3; 
-                            New=True; 
-                            UseUTF16Encoding=True", 
-                            path);
-    //            MySQL  mysql  = new MySQL(@"server=localhost;
-    //                                        uid=root;
-    //                                        pwd=1234;",
-    //                                        "TestMySQL");
+                    Console.WriteLine("Кол-во данных: {0}", N);
 
-                mssql  = new MSSQL(@"Data Source=(LocalDB)\v11.0;"+
-                                            "Integrated Security=True;"+ 
-                                            "Connect Timeout=30",
-                                            Environment.CurrentDirectory+"/",
-                                            "mssql");
-                Testing.Run(sqlite, N);
-                sqlite.Dispose();
-                //Testing.Run(mysql, N);
-                //mysql.Dispose();
-                Testing.Run(mssql, N);
-                mssql.Dispose();
+                    sqlite = new SQLite("Data Source=" + path + @"sqlite.db3; 
+                                        New=True; 
+                                        UseUTF16Encoding=True",
+                                        path);
+                    mysql = new MySQL(@"server=localhost;
+                                        uid=root;
+                                        pwd=1234;",
+                                        "TestMySQL");
 
-            }
-            catch (Exception ex)
-            {
-                standardOutput.WriteLine(ex.ToString());
-                standardOutput.WriteLine("Press any key...");
-                Console.ReadKey();
-            }
-            finally
-            {
-                Console.SetOut(standardOutput);
-                if (outf != null)
-                    outf.Dispose();
-            }
+                    mssql = new MSSQL(@"Data Source=(LocalDB)\v11.0;" +
+                                        "Integrated Security=True;" +
+                                        "Connect Timeout=30",
+                                        Environment.CurrentDirectory + "/",
+                                        "mssql");
+                    Testing.Run(sqlite, N);
+                    Testing.Run(mysql, N);
+                    Testing.Run(mssql, N);
+
+                    sqlite.Delete();
+                    sqlite.Dispose();
+
+                    mysql.Delete();
+                    mysql.Dispose();
+
+                    mssql.Delete();
+                    mssql.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    standardOutput.WriteLine(ex.Message);
+                    standardOutput.WriteLine("Press any key...");
+                    Console.ReadKey();
+                }
+                finally
+                {
+                    Console.SetOut(standardOutput);
+                    if (outf != null)
+                        outf.Dispose();
+                }
         }
 
     }

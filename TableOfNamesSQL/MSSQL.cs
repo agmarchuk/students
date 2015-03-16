@@ -30,7 +30,7 @@ namespace TableOfNamesSQL
 
         public void CreateDB()
         {
-            OpenConnection();
+            connection.Open();
             string[] files = { path + dbName + ".mdf", path + dbName + ".ldf" };
 
             var query = "CREATE DATABASE " + dbName +
@@ -64,7 +64,7 @@ namespace TableOfNamesSQL
 
         public void Delete()
         {
-            OpenConnection();
+            connection.Open();
             DbCommand comm = connection.CreateCommand();
             comm.CommandText = "DROP DATABASE " + dbName + ";";
 
@@ -83,7 +83,7 @@ namespace TableOfNamesSQL
 
         public void PrepareToLoad()
         {
-            OpenConnection();
+            connection.Open();
 
             DbCommand comm = connection.CreateCommand();
             comm.CommandText = "DROP TABLE TestStrings;";
@@ -108,7 +108,7 @@ namespace TableOfNamesSQL
 
         public void MakeIndexes()
         {
-            OpenConnection();
+            connection.Open();
 
             DbCommand comm = connection.CreateCommand();
             //comm.CommandTimeout = 2000;
@@ -126,7 +126,7 @@ namespace TableOfNamesSQL
 
         public void LoadElementFlow(int NumberData)
         {
-            OpenConnection();
+            connection.Open();
 
             DbCommand runcomm = RunStart();
             Random rnd = new Random();
@@ -143,7 +143,7 @@ namespace TableOfNamesSQL
 
         public void Count(string table)
         {
-            OpenConnection();
+            connection.Open();
 
             var comm = connection.CreateCommand();
             //comm.CommandTimeout = 1000;
@@ -154,7 +154,7 @@ namespace TableOfNamesSQL
         }
         public void SelectByIdAll(int id, string table)
         {
-            OpenConnection();
+            connection.Open();
 
             var comm = connection.CreateCommand();
             comm.CommandText = "SELECT COUNT(*) FROM " + table + " WHERE id=" + id + ";";
@@ -167,7 +167,7 @@ namespace TableOfNamesSQL
 
         public bool SelectByIdFirst(int id, string table)
         {
-            OpenConnection();
+            connection.Open();
 
             var comm = connection.CreateCommand();
             comm.CommandText = "SELECT name FROM " + table + " WHERE id=" + id + ";";
@@ -184,7 +184,7 @@ namespace TableOfNamesSQL
 
         public void SearchByNameAll(string searchstring, string table)
         {
-            OpenConnection();
+            connection.Open();
 
             var comm = connection.CreateCommand();
             comm.CommandText = "SELECT COUNT(*) FROM " + table + " WHERE name LIKE '" + searchstring + "%'";
@@ -197,7 +197,7 @@ namespace TableOfNamesSQL
 
         public bool SearchByNameFirst(string searchstring, string table)
         {
-            OpenConnection();
+            connection.Open();
 
             var comm = connection.CreateCommand();
             comm.CommandText = "SELECT TOP 1 id FROM " + table + " WHERE name LIKE '" + searchstring + "%'";
@@ -228,15 +228,6 @@ namespace TableOfNamesSQL
         {
             runcommand.Transaction.Commit();
             connection.Close();
-        }
-
-        private void OpenConnection()
-        {
-            try
-            {
-                connection.Open();
-            }
-            catch (Exception) { connection.Close(); }
         }
 
         public override string ToString()

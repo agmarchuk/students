@@ -23,11 +23,7 @@ namespace TableOfNamesSQL
 
         public void Delete()
         {
-            connection.Close();
-            connection.Dispose();
             //удаление БД только через удаление файла
-            //TODO: починить удаление, не освобождается файл
-            
             System.IO.File.Delete(path + "sqlite.db3");
         }
 
@@ -35,7 +31,6 @@ namespace TableOfNamesSQL
         {
             connection.Close();
             connection.Dispose();
-            System.IO.File.Delete(path + "sqlite.db3");
         }
 
         public void PrepareToLoad()
