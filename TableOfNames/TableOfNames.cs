@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using PolarDB;
+using System.Threading;
 
 namespace TableOfNames
 {
@@ -14,6 +15,11 @@ namespace TableOfNames
         private PType tp;
         private PaCell tableNames, index;
         private BinaryTreeIndex binTreeInd;
+
+        private const long maxSizeDictionary = 3;
+
+        private Dictionary<string, long> index_dictionary_1 = new Dictionary<string, long>();
+        //private Dictionary<string, long> index_dictionary_2 = new Dictionary<string, long>();
 
         private PaEntry SearchString(string srch)
         {
@@ -45,10 +51,16 @@ namespace TableOfNames
             });
 
             if (!found.IsEmpty)
+            {
                 entry.offset = (long)((object[])found.Get())[0];
-            else 
-                entry.offset = Int64.MinValue;
+                bool isDeleted = (bool)entry.Field(2).Get();
+                if (!isDeleted)
+                {
+                    return entry;
+                }
+            }
 
+            entry.offset = Int64.MinValue;
             return entry;
         }
 
@@ -63,16 +75,36 @@ namespace TableOfNames
             Console.WriteLine(rez.Type.Interpret(rez.Value));
         }
 
+        public void Warmup()
+        {
+            foreach (var v in tableNames.Root.ElementValues());
+            foreach (var v in index.Root.ElementValues());
+            //TODO: Разогрев дерева?
+        }
+
         public long? GetIdByString(string srchStr) 
         {
-            PaEntry ent = SearchString(srchStr);
+            PaEntry ent;
+            long offset;
+            bool isExists = index_dictionary_1.TryGetValue(srchStr, out offset);
 
-            if (ent.IsEmpty) 
-                return null;
+            if (isExists)
+            {
+                ent = tableNames.Root.Element(0);
+                ent.offset = offset;
+                return (long)ent.Field(0).Get();
+            }
+            else
+            {
+                ent = SearchString(srchStr);
 
-            object[] pair = (object[])ent.Get();
+                if (ent.IsEmpty)
+                    return null;
 
-            return (long)pair[0]; 
+                object[] pair = (object[])ent.Get();
+
+                return (long)pair[0];
+            }
         }
 
         public string GetStringById(int id)
@@ -151,6 +183,14 @@ namespace TableOfNames
             //Индексы
             index = new PaCell(tp_id, path + "index.pac", false);
             binTreeInd = new BinaryTreeIndex(binTreeType, elementCompare, path + "IndexNames.pac",false);
+
+        }
+
+        public void Dispose()
+        {
+            index.Close();
+            binTreeInd.Close();
+            tableNames.Close();
         }
 
         public void SlowCreateIndex()
@@ -159,11 +199,15 @@ namespace TableOfNames
             index.Fill(new object[0]);
 
             foreach (PaEntry ent in tableNames.Root.Elements())
+                     //.Where(ent => (bool)ent.Field(2).Get() == false))
             {
-                index.Root.AppendElement(new object[] { ent.offset, ent.Field(0).Get() });
+                if ((bool)ent.Field(2).Get() == false)
+                {
+                    index.Root.AppendElement(new object[] { ent.offset, ent.Field(0).Get() });
 
-                var hash = ent.Field(1).Get().GetHashCode();
-                binTreeInd.Add(new object[] { ent.offset, hash });
+                    var hash = ent.Field(1).Get().GetHashCode();
+                    binTreeInd.Add(new object[] { ent.offset, hash });
+                }
 
                 //Console.WriteLine("offset на строку в опорной таблице: {0}", ent.offset);
                // Console.WriteLine("Количество узлов " + binTreeInd.Root.Elements().Count<PTypeUnion>(binTreeInd.Root.Elements()));
@@ -173,7 +217,6 @@ namespace TableOfNames
             //Сортировка офсетов по id строк
             index.Root.SortByKey<long>(ob => (long)((object[])ob)[1]);
         }
-
 
         public void CreateIndex()
         {
@@ -226,17 +269,20 @@ namespace TableOfNames
             Console.WriteLine("Загрузка закончена. Время={0}", sw.ElapsedMilliseconds);
         }
 
-        public Dictionary<string, long> InsertPortion(string[] sortedArray)
+        public void InsertPortion(string[] sortedArray)
         {
-            Dictionary<string, long> dictionary = new Dictionary<string, long>();
+            //TODO: надо переделать из-за поля deleted
+            //throw new Exception("надо переделать");
+            Dictionary<string, long> dictionary = index_dictionary_1;
+
             if (sortedArray.Length == 0) 
-                return dictionary;
+                return;
             bool portionIsOver = false;
 
             int indexName = 0;
             string nameFromPortion = sortedArray[indexName];
 
-            long newCode = (int)tableNames.Root.Count();
+            long newCode = tableNames.Root.Count();
 
             if (System.IO.File.Exists(path + "temp.pac")) 
                 System.IO.File.Delete(path + "temp.pac");
@@ -290,8 +336,53 @@ namespace TableOfNames
             System.IO.File.Move(path + "temp.pac", path + "TableOfNames.pac");
 
             tableNames = new PaCell(tp, path + "TableOfNames.pac", false);
-            return dictionary;
         }
 
+        public void Add(string str)
+        {
+            if (maxSizeDictionary < index_dictionary_1.Count) 
+                MergeIndexes();
+            if (GetIdByString(str) == null)
+            {
+                long newCode = tableNames.Root.Count();
+                long offset = tableNames.Root.AppendElement(new object[] { newCode, str, false });
+                index_dictionary_1.Add(str, offset);
+            }
+        }
+        public void ShowSizeDictionary()
+        {
+            Console.WriteLine("Размер словаря: "+index_dictionary_1.Count);
+        }
+        public void Remove(string str)
+        {
+            long offset;
+            index_dictionary_1.TryGetValue(str, out offset);
+
+            PaEntry ent = tableNames.Root.Element(0);
+            ent.offset = offset;
+
+            ent.Field(2).Set(true);
+
+            index_dictionary_1.Remove(str);
+        }
+
+        public void WriteToIndex(Dictionary<string,long> dic)
+        {
+            foreach (var pair in dic)
+            {
+                long offset = pair.Value;
+                string name = pair.Key;
+                binTreeInd.Add(new object[] { offset, name.GetHashCode() });
+            }
+        }
+
+        public void MergeIndexes()
+        {
+            //TODO: слить словарь с индексным файлом в отдельном потоке
+            Dictionary<string, long> dictionary = index_dictionary_1;
+
+            index_dictionary_1 = new Dictionary<string,long>();
+            WriteToIndex(dictionary);
+        }
     }
 }

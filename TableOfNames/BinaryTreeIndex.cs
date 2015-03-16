@@ -435,6 +435,8 @@ namespace TableOfNames
         //    .First(); // обязательно есть хотя бы пустышка
         //    return candidate;
         //}
+
+
     }
 
 
