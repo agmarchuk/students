@@ -157,7 +157,7 @@ namespace TableOfNames
                 object[] pair = (object[])ob;
                 index.Root.AppendElement(new object[] { off, (long)pair[0] });
 
-                //Console.WriteLine("offset на строку в опорной таблице: {0}", off);
+                Console.WriteLine("offset на строку в опорной таблице: {0}", off);
 
                 binTreeInd.Add(off);//повторяются оффсеты, возможно баг?!
                 return true;

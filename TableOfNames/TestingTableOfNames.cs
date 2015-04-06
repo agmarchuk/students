@@ -29,8 +29,8 @@ namespace TableOfNames
             TableOfNames ton = new TableOfNames(path);
             Random rnd = new Random();
 
-            uint portion = 100000;
-            uint countPortions = 10;
+            uint portion = 10;
+            uint countPortions = 1;
 
             Console.WriteLine("Начался процесс добавления рандомных данных...");
             for (uint i = 0; i < countPortions; i++)
@@ -59,9 +59,11 @@ namespace TableOfNames
 
             sw.Restart();
             Console.WriteLine("\nПостроение индексов...");
-            ton.SlowCreateIndex();
+            //ton.SlowCreateIndex();
+            ton.CreateIndex();
             sw.Stop();
             Console.WriteLine("Индексы построены. Время={0}", sw.ElapsedMilliseconds);
+            Console.ReadKey();
 
             //Console.WriteLine();
             //ton.TreeShow();
