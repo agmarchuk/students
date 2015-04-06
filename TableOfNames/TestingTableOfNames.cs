@@ -12,50 +12,20 @@ namespace TableOfNames
         //путь до базы
         private const string path = "../../../Databases/";
 
-        //private void TestGenerator()
-        //{
-        //    //Проверка генерации строк
-        //    TestDataGenerator tdg = new TestDataGenerator(10);
-
-        //    foreach( string str in tdg.Generate() )
-        //    {
-        //        Console.WriteLine(str);
-        //    }
-        //}
-
-        static void Main(string[] args)
+        public static void Run1()
         {
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
             TableOfNames ton = new TableOfNames(path);
             Random rnd = new Random();
 
-            uint portion = 10;
-            uint countPortions = 1;
-
             Console.WriteLine("Начался процесс добавления рандомных данных...");
-            for (uint i = 0; i < countPortions; i++)
-            {
-                HashSet<string> hs = new HashSet<string>();
-
-                for (uint j = 0; j < portion; j++)
-                {
-                    string s = "s" + rnd.Next(10000000);
-                    hs.Add(s);
-                }
-                string[] arr = hs.ToArray();
-                Array.Sort<string>(arr);
-
-                sw.Start();
-                ton.InsertPortion(arr);
-                sw.Stop();
-            }
+            ton.LoadTable(10, 1);
 
             //foreach (object[] pair in ton.tableNames.Root.ElementValues())
             //{
             //    Вывод таблицы имен
             //    Console.WriteLine((long)pair[0] + " " + (string)pair[1]);
             //}
-            Console.WriteLine("Загрузка закончена. Время={0}", sw.ElapsedMilliseconds);
 
             sw.Restart();
             Console.WriteLine("\nПостроение индексов...");
@@ -71,6 +41,8 @@ namespace TableOfNames
 
             sw.Reset();
             int N = (int)ton.GetCount();
+
+            ton.Warmup();
 
             Console.WriteLine("\nПоиск строки 1000 раз...");
             for (int i = 0; i < 1000; ++i)
@@ -94,8 +66,69 @@ namespace TableOfNames
                 //Console.WriteLine("Искомый id строки {0} равен = {1}", s, ton.GetIdByString(s));
             }
             Console.WriteLine("Поиск id по строке. Время={0}", sw.ElapsedMilliseconds);
+        }
 
+        public static void Run2()
+        {
+            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            TableOfNames ton = new TableOfNames(path);
+            Random rnd = new Random();
+
+            Console.WriteLine("Начался процесс добавления рандомных данных...");
+            ton.LoadTable(10000, 1);
+
+            //foreach (object[] pair in ton.tableNames.Root.ElementValues())
+            //{
+            //    //Вывод таблицы имен
+            //    Console.WriteLine((long)pair[0] + " " + (string)pair[1]);
+            //}
+
+            sw.Restart();
+            Console.WriteLine("\nПостроение индексов...");
+            ton.SlowCreateIndex();
+            sw.Stop();
+            Console.WriteLine("Индексы построены. Время={0}", sw.ElapsedMilliseconds);
+
+            ton.Add("TryFindme");
+
+            ton.ShowSizeDictionary();
             Console.ReadKey();
+
+            sw.Restart();
+            Console.WriteLine("\nПоиск строки...");
+            if (ton.GetIdByString("TryFindme") != null) Console.WriteLine("Нашлась");
+            else 
+                Console.WriteLine("Не нашлась");
+            sw.Stop();
+            Console.WriteLine("Время={0}", sw.ElapsedMilliseconds);
+
+
+            ton.Remove("TryFindme");
+
+            ton.ShowSizeDictionary();
+            Console.ReadKey();
+
+            sw.Restart();
+            Console.WriteLine("\nПоиск удаленной строки...");
+            if (ton.GetIdByString("TryFindme") != null) Console.WriteLine("Нашлась");
+            else
+                Console.WriteLine("Не нашлась");
+            sw.Stop();
+            Console.WriteLine("Время={0}", sw.ElapsedMilliseconds);
+
+            ton.Dispose();
+        }
+
+        static void Main(string[] args)
+        {
+            //Run1();
+            Run2();
+            Console.ReadKey();
+           
+
+            System.IO.File.Delete(path + "index.pac");
+            System.IO.File.Delete(path + "IndexNames.pac");
+            System.IO.File.Delete(path + "TableOfNames.pac");
         }
     }
 }
