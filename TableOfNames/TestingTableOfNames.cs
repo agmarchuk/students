@@ -30,9 +30,11 @@ namespace TableOfNames
 
             sw.Restart();
             Console.WriteLine("\nПостроение индексов...");
-            ton.SlowCreateIndex();
+            //ton.SlowCreateIndex();
+            ton.CreateIndex();
             sw.Stop();
             Console.WriteLine("Индексы построены. Время={0}", sw.ElapsedMilliseconds);
+            Console.ReadKey();
 
             //Console.WriteLine();
             //ton.TreeShow();
