@@ -179,7 +179,7 @@ namespace TableOfNamesSQL
             runcommand.CommandType = System.Data.CommandType.Text;
             DbTransaction transaction = connection.BeginTransaction();
             runcommand.Transaction = transaction;
-            runcommand.CommandTimeout = 10000;
+            runcommand.CommandTimeout = 600000;
             return runcommand;
         }
         private void RunStop(DbCommand runcommand)

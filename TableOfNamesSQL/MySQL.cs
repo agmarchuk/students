@@ -98,7 +98,7 @@ namespace TableOfNamesSQL
             connection.Open();
 
             DbCommand comm = connection.CreateCommand();
-            //comm.CommandTimeout = 2000;
+            comm.CommandTimeout = 6000000;
             comm.CommandText ="CREATE INDEX index_name ON TestStrings(name);";
             try
             {
@@ -208,7 +208,7 @@ namespace TableOfNamesSQL
             runcommand.CommandType = System.Data.CommandType.Text;
             DbTransaction transaction = connection.BeginTransaction();
             runcommand.Transaction = transaction;
-            runcommand.CommandTimeout = 10000;
+            runcommand.CommandTimeout = 6000000;
             return runcommand;
         }
         private void RunStop(DbCommand runcommand)

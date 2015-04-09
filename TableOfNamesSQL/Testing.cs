@@ -70,7 +70,7 @@ namespace TableOfNamesSQL
             Console.WriteLine("Запуск теста для SQL DB. Результат пишется в файл {0}",
                                         Path.GetFileNameWithoutExtension(ResultsPath));
 
-            for (int i = 0; i <dataSize.Length; ++i )
+            for (int i = 6; i <dataSize.Length; ++i )
                 try
                 {
                     int N = dataSize[i];
@@ -80,10 +80,10 @@ namespace TableOfNamesSQL
 
                     Console.WriteLine("Кол-во данных: {0}", N);
 
-                    sqlite = new SQLite("Data Source=" + path + @"sqlite.db3; 
-                                        New=True; 
-                                        UseUTF16Encoding=True",
-                                        path);
+//                    sqlite = new SQLite("Data Source=" + path + @"sqlite.db3; 
+//                                        New=True; 
+//                                        UseUTF16Encoding=True",
+//                                        path);
                     mysql = new MySQL(@"server=localhost;
                                         uid=root;
                                         pwd=1234;",
@@ -94,12 +94,12 @@ namespace TableOfNamesSQL
                                         "Connect Timeout=30",
                                         Environment.CurrentDirectory + "/",
                                         "mssql");
-                    Testing.Run(sqlite, N);
+                    //Testing.Run(sqlite, N);
                     Testing.Run(mysql, N);
                     Testing.Run(mssql, N);
 
-                    sqlite.Delete();
-                    sqlite.Dispose();
+                    //sqlite.Delete();
+                    //sqlite.Dispose();
 
                     mysql.Delete();
                     mysql.Dispose();
@@ -110,8 +110,8 @@ namespace TableOfNamesSQL
                 catch (Exception ex)
                 {
                     standardOutput.WriteLine(ex.Message);
-                    standardOutput.WriteLine("Press any key...");
-                    Console.ReadKey();
+                    //standardOutput.WriteLine("Press any key...");
+                    //Console.ReadKey();
                 }
                 finally
                 {

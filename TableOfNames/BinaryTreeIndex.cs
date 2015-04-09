@@ -123,10 +123,11 @@ namespace TableOfNames
                 listEntries4Balance[i].Key.Set(listEntries4Balance[i].Value);
             //  ChangeBalanceSlowlyLongSequence(element, lastUnBalanceNode);
             int b = listEntries4Balance[0].Value;
-            if (b == 2)
-                FixWithRotateRight(lastUnBalanceNode, listEntries4Balance);
-            else if (b == -2)
-                FixWithRotateLeft(lastUnBalanceNode, listEntries4Balance);
+
+                if (b == 2)
+                    FixWithRotateRight(lastUnBalanceNode, listEntries4Balance);
+                else if (b == -2)
+                    FixWithRotateLeft(lastUnBalanceNode, listEntries4Balance);
             //  return true;
         }
 

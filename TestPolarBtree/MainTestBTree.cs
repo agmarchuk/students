@@ -22,21 +22,25 @@ namespace TestPolarBtree
             BTree btree = new BTree(compareName, path + "btree.pcx");
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
 
-            btree.Clear();
+            //btree.Clear();
             //Random rnd = new Random();
             //for (int i = 0; i < 4000; i++)
             //    btree.Add(rnd.Next(4000));
 
-            btree.Add(111);
-            btree.Add(222);
-            btree.Add(444);
-            btree.Add(555);
-            btree.Add(666);
+            //for (int i = 200000; i > 1; i--)
+            //{
+            //    btree.Add(i);
+            //}
+            //for (int i = 1; i <= 7; i++)
+            //{
+            //    btree.Add(i);
+            //}
+  
 
-            StreamWriter swriter = File.CreateText("../../Results/result.txt");
-            var res = btree.Root.GetValue();
-            swriter.WriteLine(res.Type.Interpret(res.Value));
-            swriter.Close();
+            //StreamWriter swriter = File.CreateText("../../Results/result.txt");
+            //var res = btree.Root.GetValue();
+            //swriter.WriteLine("\n" + res.Type.Interpret(res.Value));
+            //swriter.Close();
 
 
             //проверка вставки дочернего узла
@@ -64,10 +68,11 @@ namespace TestPolarBtree
 
 
             //Поиск ключа в дереве
-            //long key = 666L;
-            //Console.WriteLine(btree.Search(btree.Root, key).ToString());
-
-            //Console.WriteLine("Time: {0}", sw.ElapsedMilliseconds);
+            long key = 666L;
+            sw.Start();
+            Console.WriteLine(btree.Search(btree.Root, key).ToString());
+            sw.Stop();
+            Console.WriteLine("Time: {0}", sw.ElapsedMilliseconds);
             Console.ReadKey();
         }
     }

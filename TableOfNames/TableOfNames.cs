@@ -4,7 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using PolarDB;
+using System.ComponentModel;
 using System.Threading;
+using System.Runtime.Caching;
 
 namespace TableOfNames
 {
@@ -12,22 +14,54 @@ namespace TableOfNames
     {
         private string path;
 
-        private PType tp;
-        private PaCell tableNames, index;
-        private BinaryTreeIndex binTreeInd;
+        private PType tp, binTreeType;
+        public static PaCell tableNames, index;
+        private BinaryTreeIndex binTreeInd, binTreeInd_tmp;
+        private CacheItemPolicy policy;
 
-        private const long maxSizeDictionary = 3;
+        //Компаратор для офсетов на строки
+        private Func<object, object, int> elementCompare = (object ob1, object ob2) =>
+            {
+                object[] node1 = (object[])ob1;
+                int hash1 = (int)node1[1];
+
+                object[] node2 = (object[])ob2;
+                int hash2 = (int)node2[1];
+
+                if (hash1 == hash2) //идем в опорную таблицу, если хеши равны
+                {
+                    PaEntry entry = tableNames.Root.Element(0);
+                    long offset1 = (long)node1[0];
+                    long offset2 = (long)node2[0];
+
+                    object[] pair1 = (object[])entry.Get();
+                    entry.offset = offset1;
+                    string name1 = (string)pair1[1];
+                    entry.offset = offset2;
+                    object[] pair2 = (object[])entry.Get();
+                    string name2 = (string)pair2[1];
+
+                    return String.Compare(name1, name2, StringComparison.Ordinal);//вернётся: -1,0,1
+                }
+                else
+                    return ((hash1 < hash2) ? -1 : 1);
+               
+            };
+
+         
+        private const long maxSizeDictionary = 100000;
+
+
+        BackgroundWorker worker = new BackgroundWorker();
+        private AutoResetEvent autoEvent;
+        private object treeLocker = new object();
 
         private Dictionary<string, long> index_dictionary_1 = new Dictionary<string, long>();
-        //private Dictionary<string, long> index_dictionary_2 = new Dictionary<string, long>();
+        private Dictionary<string, long> index_dictionary_2 = new Dictionary<string, long>();
 
         private PaEntry SearchString(string srch)
         {
             PaEntry entry = tableNames.Root.Element(0);
-            //var get = (long)binTreeInd.Root.UElement().Field(0).Get();
-
-            //Console.WriteLine("TreeRoot: {0}", get);
-
             int hash = srch.GetHashCode();
 
             PxEntry found = binTreeInd.BinarySearch(pe =>
@@ -37,13 +71,8 @@ namespace TableOfNames
                 if (hash == (int)node[1])
                 {
                     entry.offset = (long)node[0];
-
                     object getStr = entry.Field(1).Get();
-
-                    //Console.WriteLine("Found: {0}",getStr);
-
                     int resultCompare = String.Compare((string)getStr, srch, StringComparison.Ordinal); //srch.CompareTo(getStr);
-
                     return resultCompare;
                 }
                 else
@@ -86,25 +115,38 @@ namespace TableOfNames
         {
             PaEntry ent;
             long offset;
-            bool isExists = index_dictionary_1.TryGetValue(srchStr, out offset);
+            bool isExists1 = index_dictionary_1.TryGetValue(srchStr, out offset);
 
-            if (isExists)
+            if (isExists1)
             {
                 ent = tableNames.Root.Element(0);
                 ent.offset = offset;
                 return (long)ent.Field(0).Get();
             }
-            else
+
+            bool isExists2 = index_dictionary_2.TryGetValue(srchStr, out offset);
+
+            if (isExists2)
+            {
+                ent = tableNames.Root.Element(0);
+                ent.offset = offset;
+                return (long)ent.Field(0).Get();
+            }
+
+            if (tableNames.Root.Count() == 0)
+                return null;
+
+            lock (treeLocker)
             {
                 ent = SearchString(srchStr);
-
-                if (ent.IsEmpty)
-                    return null;
-
-                object[] pair = (object[])ent.Get();
-
-                return (long)pair[0];
             }
+
+            if (ent.IsEmpty)
+                return null;
+
+            object[] pair = (object[])ent.Get();
+
+            return (long)pair[0];
         }
 
         public string GetStringById(int id)
@@ -131,13 +173,15 @@ namespace TableOfNames
                 new NamedType("deleted", new PType(PTypeEnumeration.boolean)))
             );
 
-            //создаём БД
-            tableNames = new PaCell(tp, path + "TableOfNames.pac", false);
+            if (!System.IO.File.Exists(path + "TableOfNames.pac"))
+            {
+                //создаём БД
+                tableNames = new PaCell(tp, path + "TableOfNames.pac", false);
 
-            //очистка БД
-            tableNames.Clear();
-            tableNames.Fill(new object[0]);
-
+                //очистка БД
+                tableNames.Clear();
+                tableNames.Fill(new object[0]);
+            }
             //типы ячеек для таблицы с офсетами и для таблицы "offset-id"
             PType tp_of = new PTypeSequence(new PType(PTypeEnumeration.longinteger));
             PType tp_id = new PTypeSequence(new PTypeRecord(
@@ -146,48 +190,34 @@ namespace TableOfNames
             );
 
             //узел дерева состоит из офсета и хешкода
-            PType binTreeType = new PTypeRecord(
+            binTreeType = new PTypeRecord(
                 new NamedType("offset", new PType(PTypeEnumeration.longinteger)),
                 new NamedType("hash", new PType(PTypeEnumeration.integer))
             );
 
-            //Компаратор для офсетов на строки
-            Func<object, object, int> elementCompare = (object ob1, object ob2) =>
-            {
-                object[] node1 = (object[])ob1;
-                int hash1 = (int)node1[1];
-
-                object[] node2 = (object[])ob2;
-                int hash2 = (int)node2[1];
-
-                if (hash1 == hash2) //идем в опорную таблицу, если хеши равны
-                {
-                    PaEntry entry = tableNames.Root.Element(0);
-                    long offset1 = (long)node1[0];
-                    long offset2 = (long)node2[0];
-
-                    object[] pair1 = (object[])entry.Get();
-                    entry.offset = offset1;
-                    string name1 = (string)pair1[1];
-                    entry.offset = offset2;
-                    object[] pair2 = (object[])entry.Get();
-                    string name2 = (string)pair2[1];
-
-                    return String.Compare(name1, name2, StringComparison.Ordinal);//вернётся: -1,0,1
-                }
-                else
-                    return ((hash1 < hash2) ? -1 : 1);
-               
-            };
-
             //Индексы
             index = new PaCell(tp_id, path + "index.pac", false);
-            binTreeInd = new BinaryTreeIndex(binTreeType, elementCompare, path + "IndexNames.pac",false);
+            binTreeInd = new BinaryTreeIndex(binTreeType, elementCompare, path + "IndexNames.pax",false);
 
+            //Фоновый поток
+            autoEvent = new AutoResetEvent(true);
+            worker.DoWork += backgroundWorker1_DoWork;
+            worker.RunWorkerCompleted += backgroundWorker1_RunWorkerCompleted;
+            worker.WorkerSupportsCancellation = true;
+            
+            //cache
+            policy = new CacheItemPolicy();
+            policy.AbsoluteExpiration = DateTimeOffset.Now.AddSeconds(10.0);
+
+            List<string> CacheFiles = new List<string>();
+            CacheFiles.Add(path + "IndexNames.pax");
+            policy.ChangeMonitors.Add(new HostFileChangeMonitor(CacheFiles));
         }
 
         public void Dispose()
         {
+            autoEvent.WaitOne();
+       
             index.Close();
             binTreeInd.Close();
             tableNames.Close();
@@ -340,19 +370,23 @@ namespace TableOfNames
 
         public void Add(string str)
         {
-            if (maxSizeDictionary < index_dictionary_1.Count) 
+            if (maxSizeDictionary <= index_dictionary_1.Count) 
                 MergeIndexes();
-            if (GetIdByString(str) == null)
+
+            //if (GetIdByString(str) == null)
             {
                 long newCode = tableNames.Root.Count();
                 long offset = tableNames.Root.AppendElement(new object[] { newCode, str, false });
+                
                 index_dictionary_1.Add(str, offset);
             }
         }
+        
         public void ShowSizeDictionary()
         {
             Console.WriteLine("Размер словаря: "+index_dictionary_1.Count);
         }
+        
         public void Remove(string str)
         {
             long offset;
@@ -368,21 +402,67 @@ namespace TableOfNames
 
         public void WriteToIndex(Dictionary<string,long> dic)
         {
+            lock (treeLocker)
+            {
+                binTreeInd.Close();
+                System.IO.File.Copy(path + "IndexNames.pax", path + "tmp.pax");
+                binTreeInd = new BinaryTreeIndex(binTreeType, elementCompare, path + "IndexNames.pax", false);
+            }
+
+            binTreeInd_tmp = new BinaryTreeIndex(binTreeType, elementCompare, path + "tmp.pax", false);
+
             foreach (var pair in dic)
             {
                 long offset = pair.Value;
                 string name = pair.Key;
-                binTreeInd.Add(new object[] { offset, name.GetHashCode() });
+
+                binTreeInd_tmp.Add(new object[] { offset, name.GetHashCode() });
             }
+
+            lock (treeLocker)
+            {
+                binTreeInd_tmp.Close();
+                binTreeInd.Close();
+                System.IO.File.Delete(path + "IndexNames.pax");
+                System.IO.File.Move(path + "tmp.pax", path + "IndexNames.pax");
+
+                binTreeInd = new BinaryTreeIndex(binTreeType, elementCompare, path + "IndexNames.pax", false);
+            }
+            
+            worker.CancelAsync();
         }
 
         public void MergeIndexes()
         {
-            //TODO: слить словарь с индексным файлом в отдельном потоке
-            Dictionary<string, long> dictionary = index_dictionary_1;
+            if (worker.IsBusy) { Console.WriteLine("\nСловарь переполнен"); return; }
 
-            index_dictionary_1 = new Dictionary<string,long>();
-            WriteToIndex(dictionary);
+            index_dictionary_2 = index_dictionary_1;
+            index_dictionary_1 = new Dictionary<string, long>();
+
+            worker.RunWorkerAsync();
+        }
+
+        private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
+        {
+            autoEvent.Reset();
+            WriteToIndex(index_dictionary_2);
+        }
+       
+        private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            tableNames.Flush();
+            autoEvent.Set();
+        }
+
+        public void CacheIndex(object toCache)
+        {
+            ObjectCache cache = MemoryCache.Default;
+            var fileContents = cache["indexCache"];
+            
+            //поиск объекта в кеше
+
+            //если объект не найден
+            cache.Set("indexCache", toCache, policy);
         }
     }
 }
