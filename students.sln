@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableOfNames", "TableOfName
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableOfNamesSQL", "TableOfNamesSQL\TableOfNamesSQL.csproj", "{EB8AE6A1-BCB5-4FD3-87BC-3B4B5F52904B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PolarBTreeIndex", "PolarBTreeIndex\PolarBTreeIndex\PolarBTreeIndex.csproj", "{AC2EB759-D7EC-4A7B-A346-CF4530B6C9D3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{EB8AE6A1-BCB5-4FD3-87BC-3B4B5F52904B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EB8AE6A1-BCB5-4FD3-87BC-3B4B5F52904B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EB8AE6A1-BCB5-4FD3-87BC-3B4B5F52904B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC2EB759-D7EC-4A7B-A346-CF4530B6C9D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC2EB759-D7EC-4A7B-A346-CF4530B6C9D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC2EB759-D7EC-4A7B-A346-CF4530B6C9D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC2EB759-D7EC-4A7B-A346-CF4530B6C9D3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

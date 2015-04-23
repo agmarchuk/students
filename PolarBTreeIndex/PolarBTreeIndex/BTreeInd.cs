@@ -7,9 +7,9 @@ using PolarDB;
 using System.Diagnostics.Contracts;
 using System.IO;
 
-namespace TestPolarBtree
+namespace PolarBtreeIndex
 {
-    class BTree: PxCell
+    class BTreeInd: PxCell
     {
         /// <summary>
         /// BDegree - минимальная степень дерева 
@@ -18,18 +18,18 @@ namespace TestPolarBtree
         /// </summary>
         private int BDegree;
 
-        private readonly Func<object, object, int> _compareKeys;
+        private readonly Func<object, object, int> elementComparer;
 
         private object[] EmptyNode;
 
-        private static PTypeUnion PStructTree()
+        private static PTypeUnion PStructTree(PType tpElement)
         {
             var structBtree = new PTypeUnion();
             structBtree.Variants = new[]{
                 new NamedType("empty", new PType(PTypeEnumeration.none)),
                 new NamedType("node", new PTypeRecord(//узел
                     new NamedType("NumKeys", new PType(PTypeEnumeration.integer)),//количество ключей
-                    new NamedType("Keys", new PTypeSequence(new PType(PTypeEnumeration.longinteger))),//массив ключей от t-1 до 2t-1 в каждом узле
+                    new NamedType("Keys", new PTypeSequence(tpElement)),//массив ключей
                     new NamedType("IsLeaf", new PType(PTypeEnumeration.boolean)),//является ли узел листом
                     new NamedType("Childs", new PTypeSequence(structBtree))//дочерние узлы
                     ))
@@ -41,13 +41,18 @@ namespace TestPolarBtree
         /// Конструктор B-дерева
         /// </summary>
         /// <param name="Degree">Степень дерева</param>
+        /// <param name="ptElement">тип ключа</param>
         /// <param name="compareKeys">компаратор</param>
         /// <param name="filePath">путь к файлу</param>
         /// <param name="readOnly">флаг чтения файла</param>
-        public BTree(int Degree, Func<object, object, int> compareKeys, string filePath, bool readOnly = false)
-            : base(PStructTree(), filePath, readOnly)
+        public BTreeInd(int Degree, 
+                        PType ptElement,
+                        Func<object, object, int> elementComparer, 
+                        string filePath, bool 
+                        readOnly = false)
+                        : base(PStructTree(ptElement), filePath, readOnly)
         {
-            this._compareKeys = compareKeys;
+            this.elementComparer = elementComparer;
             BDegree = Degree;
 
             object[] childsEmpty = new object[2 * BDegree];
@@ -68,68 +73,6 @@ namespace TestPolarBtree
                     childsEmpty
                 }
             };
-        }
-
-        /// <summary>
-        /// Тестовое выделение памяти для узлов
-        /// </summary>
-        public void TestAllocate() 
-        {
-            DiskAllocateNode(Root);
-            DiskAllocateNode(Root.UElement().Field(3).Element(0));
-            
-            var H = Root.UElement().Field(3).Element(0).GetHead();
-            Root.UElement().Field(3).Element(1).SetHead(H);
-
-            var child = Root.UElement().Field(3).Element(0);
-            DiskAllocateNode(child.UElement().Field(3).Element(0));
-            Console.WriteLine(child.UElement().Field(3).Element(0).offset);
-        }
-
-        /// <summary>
-        /// Тестовое заполнение дерева в ручную
-        /// </summary>
-        public PValue TestFillTree()
-        {
-            object[] ob =
-            {
-                1,
-                new object[]
-                    {
-                    1,
-                    new object[] { 333L },
-                    false,
-                    new object[] {
-                        new object[] {//child#1
-                            1,
-                            new object[]{
-                                2,
-                                new object[] { 111L,222L},
-                                true,
-                                new object[0]
-                                }
-                        },
-                        new object[] {//child#2
-                            1,
-                            new object[]{
-                                3,
-                                new object[] { 444L,555L,666L},
-                                true,
-                                new object[0]
-                                }
-                        },
-                        new object[] {//память под третий child
-                            0, 
-                            null
-                        }
-                    }
-                }
-            };
-            this.Fill2(ob);
-
-            var res3 = this.Root.GetValue();
-            //Console.WriteLine(res3.Type.Interpret(res3.Value));
-            return res3;
         }
 
         /// <summary>
@@ -293,8 +236,7 @@ namespace TestPolarBtree
         /// <summary>
         /// Добавление ключей в узел
         /// </summary>
-        /// <param name="key"></param>
-        public void Add(long key)
+        public void Add(object element)
         {
             //когда дерево пустое, организовать одиночное значение
             if (Root.Tag() == 0)
@@ -302,7 +244,7 @@ namespace TestPolarBtree
                 DiskAllocateNode(Root);
 
                 Root.UElement().Field(0).Set(1);
-                Root.UElement().Field(1).Set(new object[] {key});
+                Root.UElement().Field(1).Set(new object[] { element });
             }
             else
             {
@@ -312,7 +254,7 @@ namespace TestPolarBtree
                     SplitRoot();
                 }
 
-                AddInNode(Root, Root, key);
+                AddInNode(Root, Root, element);
             }
 
         }
@@ -323,7 +265,7 @@ namespace TestPolarBtree
         /// <param name="parent">родительский узел</param>
         /// <param name="node">текущий узел</param>
         /// <param name="key">ключ</param>
-        private void AddInNode(PxEntry parent, PxEntry node, long key)
+        private void AddInNode(PxEntry parent, PxEntry node, object element)
         {
             //получаем массив ключей из узла
             object[] arrayKeys = (node.UElement().Field(1).Get() as object[]);
@@ -341,13 +283,13 @@ namespace TestPolarBtree
                 
                 //TODO:Здесь должен быть компаратор compareKeys
                 if (key <= middleKey)
-                    AddInNode(parent, leftTree, key);
+                    AddInNode(parent, leftTree, element);
                 else
-                    AddInNode(parent, rightTree, key);
+                    AddInNode(parent, rightTree, element);
             }
             else if (isLeaf == true)
-            { 
-                this.InsertNonFull(ref arrayKeys, node, key);
+            {
+                this.InsertNonFull(ref arrayKeys, node, element);
             }
             else 
             {
@@ -361,7 +303,7 @@ namespace TestPolarBtree
                     }
                 }
 
-                AddInNode(node, node.UElement().Field(3).Element(indexChild), key);
+                AddInNode(node, node.UElement().Field(3).Element(indexChild), element);
             }
         }
 
@@ -371,7 +313,7 @@ namespace TestPolarBtree
         /// <param name="arrayKeys">массив ключей</param>
         /// <param name="key">ключ</param>
         /// <returns>позиция вставленного ключа в массиве</returns>
-        private int InsertKeyInArray(ref object[] arrayKeys, long key)
+        private int InsertKeyInArray(ref object[] arrayKeys, object element)
         {
             int NumKeys = arrayKeys.Length;
             Array.Resize<object>(ref arrayKeys, NumKeys + 1);//выделяем место под новый ключ
@@ -427,7 +369,7 @@ namespace TestPolarBtree
         /// </summary>
         /// <param name="node">Узел, с которого начинается поиск</param>
         /// <param name="key">Ключ</param>
-        /// <returns>Возвращает true, если ключ найден, иначе false</returns>
+        /// <returns>true - ключ найден, иначе false</returns>
         public bool Search(PxEntry node, long key)
         {
             //получаем массив ключей из узла
@@ -439,7 +381,7 @@ namespace TestPolarBtree
             {
                 if (key == (long)arrayKeys[i]) return true;
                 else
-                    if (key < (long)arrayKeys[i])
+                    if (key < (long)arrayKeys[i])//TODO: компаратор элементов
                     {
                         indexChild = i;
                         break;
@@ -461,7 +403,6 @@ namespace TestPolarBtree
 
         public void WriteTreeInFile(string path)
         {
-            Console.WriteLine("Вывод дерева в файл...");
             StreamWriter swriter = File.CreateText(path);
             try
             {
@@ -472,7 +413,6 @@ namespace TestPolarBtree
             {
                 swriter.Close();
             }
-            Console.WriteLine("Вывод дерева в файл закончен. Файл находится в " + Path.GetDirectoryName(path));
         }
 
          //public void Delete();
