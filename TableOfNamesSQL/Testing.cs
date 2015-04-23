@@ -37,6 +37,7 @@ namespace TableOfNamesSQL
             sw.Stop();
             Console.WriteLine("Создание индексов. Время={0}", sw.ElapsedMilliseconds);
 
+
             sw.Reset();
             for (int i = 0; i < 1000; ++i)
             {
@@ -70,10 +71,10 @@ namespace TableOfNamesSQL
             Console.WriteLine("Запуск теста для SQL DB. Результат пишется в файл {0}",
                                         Path.GetFileNameWithoutExtension(ResultsPath));
 
-            for (int i = 6; i <dataSize.Length; ++i )
+            //for (int i = 6; i <dataSize.Length; ++i )
                 try
                 {
-                    int N = dataSize[i];
+                    int N = 100000;// dataSize[i];
                     outf = new StreamWriter(string.Format(ResultsPath + "ResultRunSQL_[{0}].txt", N));
 
                     Console.SetOut(outf);
@@ -89,14 +90,14 @@ namespace TableOfNamesSQL
                                         pwd=1234;",
                                         "TestMySQL");
 
-                    mssql = new MSSQL(@"Data Source=(LocalDB)\v11.0;" +
-                                        "Integrated Security=True;" +
-                                        "Connect Timeout=30",
-                                        Environment.CurrentDirectory + "/",
-                                        "mssql");
+                    //mssql = new MSSQL(@"Data Source=(LocalDB)\v11.0;" +
+                    //                    "Integrated Security=True;" +
+                    //                    "Connect Timeout=30",
+                    //                    Environment.CurrentDirectory + "/",
+                    //                    "mssql");
                     //Testing.Run(sqlite, N);
                     Testing.Run(mysql, N);
-                    Testing.Run(mssql, N);
+                    //Testing.Run(mssql, N);
 
                     //sqlite.Delete();
                     //sqlite.Dispose();
@@ -104,8 +105,8 @@ namespace TableOfNamesSQL
                     mysql.Delete();
                     mysql.Dispose();
 
-                    mssql.Delete();
-                    mssql.Dispose();
+                    //mssql.Delete();
+                    //mssql.Dispose();
                 }
                 catch (Exception ex)
                 {

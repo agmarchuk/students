@@ -84,7 +84,7 @@ namespace TableOfNamesSQL
             comm.CommandText =
             @"CREATE TABLE TestStrings (id INTEGER PRIMARY KEY AUTO_INCREMENT NOT NULL, 
                                         name NVARCHAR(255), 
-                                        deleted INTEGER DEFAULT 0);";
+                                        deleted INTEGER DEFAULT 0) ENGINE=InnoDB;";//MyISAM
             try
             {
                 comm.ExecuteNonQuery();
@@ -99,7 +99,8 @@ namespace TableOfNamesSQL
 
             DbCommand comm = connection.CreateCommand();
             comm.CommandTimeout = 6000000;
-            comm.CommandText ="CREATE INDEX index_name ON TestStrings(name);";
+            //comm.CommandText ="CREATE INDEX index_name ON TestStrings(name);";
+            comm.CommandText = "CREATE INDEX  combined ON TestStrings(id,name);";
             try
             {
                 comm.ExecuteNonQuery();

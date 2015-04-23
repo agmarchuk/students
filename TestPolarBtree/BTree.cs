@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using PolarDB;
 using System.Diagnostics.Contracts;
+using System.IO;
 
 namespace TestPolarBtree
 {
@@ -15,7 +16,7 @@ namespace TestPolarBtree
         /// зависит от объема оперативной памяти
         /// обычно берется из диапазона от 50 до 2000
         /// </summary>
-        private const int BDegree = 50;
+        private int BDegree;
 
         private readonly Func<object, object, int> _compareKeys;
 
@@ -35,11 +36,19 @@ namespace TestPolarBtree
             };
             return structBtree;
         }
-
-        public BTree(Func<object, object, int> compareKeys, string filePath, bool readOnly = false)
+        
+        /// <summary>
+        /// Конструктор B-дерева
+        /// </summary>
+        /// <param name="Degree">Степень дерева</param>
+        /// <param name="compareKeys">компаратор</param>
+        /// <param name="filePath">путь к файлу</param>
+        /// <param name="readOnly">флаг чтения файла</param>
+        public BTree(int Degree, Func<object, object, int> compareKeys, string filePath, bool readOnly = false)
             : base(PStructTree(), filePath, readOnly)
         {
             this._compareKeys = compareKeys;
+            BDegree = Degree;
 
             object[] childsEmpty = new object[2 * BDegree];
 
@@ -59,6 +68,22 @@ namespace TestPolarBtree
                     childsEmpty
                 }
             };
+        }
+
+        /// <summary>
+        /// Тестовое выделение памяти для узлов
+        /// </summary>
+        public void TestAllocate() 
+        {
+            DiskAllocateNode(Root);
+            DiskAllocateNode(Root.UElement().Field(3).Element(0));
+            
+            var H = Root.UElement().Field(3).Element(0).GetHead();
+            Root.UElement().Field(3).Element(1).SetHead(H);
+
+            var child = Root.UElement().Field(3).Element(0);
+            DiskAllocateNode(child.UElement().Field(3).Element(0));
+            Console.WriteLine(child.UElement().Field(3).Element(0).offset);
         }
 
         /// <summary>
@@ -107,17 +132,25 @@ namespace TestPolarBtree
             return res3;
         }
 
-
+        /// <summary>
+        /// Выделение памяти для узла
+        /// </summary>
+        /// <param name="node">узел</param>
         private void DiskAllocateNode(PxEntry node)
         {
             node.Set(EmptyNode);
         }
 
+        /// <summary>
+        /// Разделение корня дерева
+        /// </summary>
         private void SplitRoot()
         {
             var keys = Root.UElement().Field(1).Get() as object[];
-            int numChilds= Root.UElement().Field(3).Elements().ToArray().Count();
-
+            bool isLeaf = (bool)Root.UElement().Field(2).Get();
+            int numChilds = 0;
+            if (!isLeaf)
+                numChilds = keys.Length + 1;
 
             object[] arr1 = new object[(keys.Length - 1) / 2];
             object[] arr2 = new object[(keys.Length - 1) / 2];
@@ -140,7 +173,6 @@ namespace TestPolarBtree
                 childsRight[i - numChilds / 2] = Root.UElement().Field(3).Element(i).GetHead();
             }
 
-            bool isLeaf = (bool)Root.UElement().Field(2).Get();
             bool isLeafLeft = false,
                  isLeafRight = false;
             if (isLeaf)
@@ -176,137 +208,35 @@ namespace TestPolarBtree
             }
             for (int i = numChilds / 2; i < numChilds; i++)
             {
-                Right.UElement().Field(3).Element(i).SetHead((byte[])childsRight[i - numChilds / 2]);
+                Right.UElement().Field(3).Element(i - numChilds / 2).SetHead((byte[])childsRight[i - numChilds / 2]);
             }
-
-            //var res = Root.GetValue();
-            //Console.WriteLine("\n" + res.Type.Interpret(res.Value));
-            //Console.ReadKey();
-
-            //for (int i = 0; i < 2 * BDegree; i++)
-            //{
-            //    Left.UElement().Field(3).Element(i).Set(childs[i]);
-            //    Right.UElement().Field(3).Element(i).Set(childs[i]);
-            //}
-
         }
 
         /// <summary>
-        /// Добавление ключей в узел
+        /// Разделение узла
         /// </summary>
-        /// <param name="key"></param>
-        public void Add(long key)
-        {
-            
-            // когда дерево пустое, организовать одиночное значение
-            if (Root.Tag() == 0)
-            {
-                //TODO: Требуется выполнять только один раз при добавлении первого ключа
-                DiskAllocateNode(Root);
-
-                Root.UElement().Field(0).Set(1);
-                Root.UElement().Field(1).Set(new object[] {key});
-
-            }
-            else
-            {
-                int numKeysInNode = (int)Root.UElement().Field(0).Get();
-                if (numKeysInNode == 2 * BDegree-1)
-                {
-                    SplitRoot();
-                }
-                
-                AddInNode(Root, Root, key);
-            }
-
-        }
-
-        private void AddInNode(PxEntry parent, PxEntry node, long key)
-        {
-            
-            //получаем массив ключей из узла
-            object[] arrayKeys = (node.UElement().Field(1).Get() as object[]);
-            int numKeysInNode = (int)node.UElement().Field(0).Get();
-
-            bool isLeaf = (bool)node.UElement().Field(2).Get();
-
-            //Если узел заполнен
-            if (numKeysInNode == 2 * BDegree - 1)
-            {
-                long middleKey = 0;
-                PxEntry leftTree, rightTree;
-
-                SplitNode(parent, node, out leftTree, out rightTree, out middleKey);
-
-
-                //TODO: случай когда равно
-                if (key <= middleKey)//Здесь должен быть компаратор compareKeys
-                    AddInNode(parent, leftTree, key);
-                else
-                    AddInNode(parent, rightTree, key);
-
-                return;
-            }
-            else if (isLeaf == true)
-            { 
-                this.InsertNonFull(ref arrayKeys, node, key);
-                return;
-            }
-            else 
-            {
-                int indexChild = numKeysInNode;
-                for (int i = 0; i < numKeysInNode; ++i)
-                {
-                    if (key < (long)arrayKeys[i])
-                    {
-                        indexChild = i;
-                        break;
-                    }
-                }
-
-                AddInNode(node, node.UElement().Field(3).Element(indexChild), key);
-
-            }
-        }
-
-        private int InsertKeyInArray(ref object[] arrayKeys, long key)
-        {
-            //TODO: Реализовать "правильную" вставку (сдвигом) нового ключа с сохранением порядка
-            int NumKeys = arrayKeys.Length;
-
-            Contract.Assert(NumKeys <= 2 * BDegree - 1);
-
-            Array.Resize<object>(ref arrayKeys, NumKeys + 1);//выделяем место под новый ключ
-            arrayKeys[NumKeys] = (object)key;
-            Array.Sort(arrayKeys);
-            return Array.FindIndex(arrayKeys, ent => ((long)ent == key));
-        }
-
-        private void InsertNonFull(ref object[] arrayKeys, PxEntry node, long key)
-        {
-            InsertKeyInArray(ref arrayKeys, key);
-
-            node.UElement().Field(0).Set(arrayKeys.Length);
-            node.UElement().Field(1).Set(arrayKeys);
-            node.UElement().Field(2).Set(true);
-        }
-
-        public void SplitNode(PxEntry parent, PxEntry node,out PxEntry leftTree, out PxEntry rightTree, out long middleKey)
+        /// <param name="parent">родитель</param>
+        /// <param name="node">узел</param>
+        /// <param name="leftTree">левое поддерево</param>
+        /// <param name="rightTree">правое поддерево</param>
+        /// <param name="middleKey">медианный ключ</param>
+        private void SplitNode(PxEntry parent, PxEntry node, out PxEntry leftTree, out PxEntry rightTree, out long middleKey)
         {
             var keysNode = node.UElement().Field(1).Get() as object[];
             var keysParent = parent.UElement().Field(1).Get() as object[];
-            int numChilds = node.UElement().Field(3).Elements().ToArray().Count();
+            bool isLeaf = (bool)node.UElement().Field(2).Get();
+            int numChilds = 0;
+            if (!isLeaf)
+                numChilds = keysNode.Length + 1;
 
-            middleKey = (long)keysNode[BDegree-1];
+            middleKey = (long)keysNode[BDegree - 1];
 
-            int position = InsertKeyInArray(ref keysParent,middleKey);
+            int position = InsertKeyInArray(ref keysParent, middleKey);
             parent.UElement().Field(0).Set(keysParent.Length);
             parent.UElement().Field(1).Set(keysParent);
 
             PxEntry Left = node;
-            PxEntry Right = GetPlace4Child(parent, position);
-
-            DiskAllocateNode(Right);
+            PxEntry Right = GetPlace4Child(parent, position + 1);
 
             object[] arr1 = new object[(keysNode.Length - 1) / 2];
             object[] arr2 = new object[(keysNode.Length - 1) / 2];
@@ -315,23 +245,19 @@ namespace TestPolarBtree
             {
                 arr1[i] = keysNode[i];
                 arr2[i] = keysNode[i + BDegree];
-                //Console.WriteLine(arr1[i] + "||" + arr2[i]);
             }
-                        
 
             byte[][] childsLeft = new byte[numChilds][];
             byte[][] childsRight = new byte[numChilds][];
 
             for (int i = 0; i < numChilds / 2; i++)
             {
-                childsLeft[i] = parent.UElement().Field(3).Element(i).GetHead();
+                childsLeft[i] = node.UElement().Field(3).Element(i).GetHead();
             }
             for (int i = numChilds / 2; i < numChilds; i++)
             {
-                childsRight[i - numChilds / 2] = parent.UElement().Field(3).Element(i).GetHead();
+                childsRight[i - numChilds / 2] = node.UElement().Field(3).Element(i).GetHead();
             }
-
-            bool isLeaf = (bool)node.UElement().Field(2).Get();
 
             bool isLeafLeft = false,
                  isLeafRight = false;
@@ -356,40 +282,152 @@ namespace TestPolarBtree
             }
             for (int i = numChilds / 2; i < numChilds; i++)
             {
-                Right.UElement().Field(3).Element(i).SetHead((byte[])childsRight[i - numChilds / 2]);
+                Left.UElement().Field(3).Element(i).Set(new object[] { 0, null });
+                Right.UElement().Field(3).Element(i - numChilds / 2).SetHead((byte[])childsRight[i - numChilds / 2]);
             }
 
             leftTree = Left;
             rightTree = Right;
-            node = Left;
-            //object[] ob = Right.UElement().Field(1).Get() as object[];
-            //for (int j = 0; j < ob.Length; j++)
-            //        Console.Write((long)ob[j]+" ");
-            //Console.ReadKey();
         }
 
-     
+        /// <summary>
+        /// Добавление ключей в узел
+        /// </summary>
+        /// <param name="key"></param>
+        public void Add(long key)
+        {
+            //когда дерево пустое, организовать одиночное значение
+            if (Root.Tag() == 0)
+            {
+                DiskAllocateNode(Root);
+
+                Root.UElement().Field(0).Set(1);
+                Root.UElement().Field(1).Set(new object[] {key});
+            }
+            else
+            {
+                int numKeysInNode = (int)Root.UElement().Field(0).Get();
+                if (numKeysInNode == 2 * BDegree-1)
+                {
+                    SplitRoot();
+                }
+
+                AddInNode(Root, Root, key);
+            }
+
+        }
+
+        /// <summary>
+        /// Вставка ключа в узел
+        /// </summary>
+        /// <param name="parent">родительский узел</param>
+        /// <param name="node">текущий узел</param>
+        /// <param name="key">ключ</param>
+        private void AddInNode(PxEntry parent, PxEntry node, long key)
+        {
+            //получаем массив ключей из узла
+            object[] arrayKeys = (node.UElement().Field(1).Get() as object[]);
+            int numKeysInNode = (int)node.UElement().Field(0).Get();
+
+            bool isLeaf = (bool)node.UElement().Field(2).Get();
+
+            //Если узел заполнен
+            if (numKeysInNode == 2 * BDegree - 1)
+            {
+                long middleKey = 0;
+                PxEntry leftTree, rightTree;
+
+                SplitNode(parent, node, out leftTree, out rightTree, out middleKey);
+                
+                //TODO:Здесь должен быть компаратор compareKeys
+                if (key <= middleKey)
+                    AddInNode(parent, leftTree, key);
+                else
+                    AddInNode(parent, rightTree, key);
+            }
+            else if (isLeaf == true)
+            { 
+                this.InsertNonFull(ref arrayKeys, node, key);
+            }
+            else 
+            {
+                int indexChild = numKeysInNode;
+                for (int i = 0; i < numKeysInNode; ++i)
+                {
+                    if (key < (long)arrayKeys[i])
+                    {
+                        indexChild = i;
+                        break;
+                    }
+                }
+
+                AddInNode(node, node.UElement().Field(3).Element(indexChild), key);
+            }
+        }
+
+        /// <summary>
+        /// Вставка ключа в массив ключей
+        /// </summary>
+        /// <param name="arrayKeys">массив ключей</param>
+        /// <param name="key">ключ</param>
+        /// <returns>позиция вставленного ключа в массиве</returns>
+        private int InsertKeyInArray(ref object[] arrayKeys, long key)
+        {
+            int NumKeys = arrayKeys.Length;
+            Array.Resize<object>(ref arrayKeys, NumKeys + 1);//выделяем место под новый ключ
+            
+            int position = NumKeys;
+            while ((position>0)&&(key < (long)arrayKeys[position-1]))
+            {
+                arrayKeys[position]=arrayKeys[position-1];
+                --position;
+            }
+
+            arrayKeys[position] = (object)key;
+            return position;
+        }
+
+        /// <summary>
+        /// Вставка в незаполненный узел
+        /// </summary>
+        /// <param name="arrayKeys">массив ключей</param>
+        /// <param name="node">узел</param>
+        /// <param name="key">ключ</param>
+        private void InsertNonFull(ref object[] arrayKeys, PxEntry node, long key)
+        {
+            InsertKeyInArray(ref arrayKeys, key);
+
+            node.UElement().Field(0).Set(arrayKeys.Length);
+            node.UElement().Field(1).Set(arrayKeys);
+            node.UElement().Field(2).Set(true);
+        }
+
+        /// <summary>
+        /// Выделение памяти под дочерний узел
+        /// </summary>
+        /// <param name="parent">родитель</param>
+        /// <param name="position">позиция</param>
+        /// <returns>указатель на новый дочерний узел</returns>
         private PxEntry GetPlace4Child(PxEntry parent, int position)
         {
-            //parent должен иметь по максимуму пустых дочерних узлов
             int numKeysInNode = (int)parent.UElement().Field(0).Get();
             int numChilds = numKeysInNode + 1;
-            for (int j = numChilds-1; j > position; j-- )
+
+            for (int j = BDegree*2-1; j > position; --j )
             {
                 var headChild = parent.UElement().Field(3).Element(j-1).GetHead();
                 parent.UElement().Field(3).Element(j).SetHead(headChild);
             }
-            //DiskAllocateNode(parent.UElement().Field(3).Element(position));
-
+            DiskAllocateNode(parent.UElement().Field(3).Element(position));
             return parent.UElement().Field(3).Element(position);
         }
 
         /// <summary>
         /// Метод поиска ключа в дереве
         /// </summary>
-        /// <param name="node"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
+        /// <param name="node">Узел, с которого начинается поиск</param>
+        /// <param name="key">Ключ</param>
+        /// <returns>Возвращает true, если ключ найден, иначе false</returns>
         public bool Search(PxEntry node, long key)
         {
             //получаем массив ключей из узла
@@ -416,10 +454,8 @@ namespace TestPolarBtree
             // var res3 = node.UElement().Field(3).Element(1).UElement().Field(1).GetValue();
             //Console.WriteLine(res3.Type.Interpret(res3.Value));
             
-            //Получаем ссылку на дочерний узел, содержащий диапазон ключей, 
-            //в котором может быть найден необходимый ключ
+            //продолжаем поиск ключа в дочернем узле 
             PxEntry child = node.UElement().Field(3).Element(indexChild);
-
             return Search(child, key);
         }
 
