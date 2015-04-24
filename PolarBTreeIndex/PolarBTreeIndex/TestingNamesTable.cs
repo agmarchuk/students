@@ -10,35 +10,58 @@ namespace PolarBtreeIndex
     class TestingNamesTable
     {
         //путь до базы
-        private const string path = @"../../../Databases/";
+        private const string path = @"../../../../Databases/";
         //путь до файла результатов теста
-        private const string ResultsPath = "../../../../PolarBTreeIndex/Results/";
+        private const string resultsPath = "../../../PolarBTreeIndex/Results/";
+        //файл с выводом дерева
+        private const string BTreePath = resultsPath + "BTree.txt";
 
-        private static const int dataSize = 1000;
+        private static string fileResult = null;
+
+        private const int dataSize = 1000000;
+
         private static TextWriter standardOutput = Console.Out;
-        private static StreamWriter outf = new StreamWriter(string.Format(ResultsPath + "ResultTest1.txt"));
+        private static StreamWriter outf = null;
 
         static void Main(string[] args)
         {
             try
             {
-                Console.SetOut(outf);
-                standardOutput.WriteLine("Запуск теста №1");
-                //------------
-                Test1();
-                //Test2();
-                //Test3();
-                //------------
-                standardOutput.WriteLine("Теста №1 завершен. Результат в файле {0}",
-                                            Path.GetFileNameWithoutExtension(ResultsPath));
+                int numTest = 1;
+                int counter = 2;
+                //for(int counter = 1;counter<2;++counter)
+                {
+                    fileResult = String.Format(resultsPath + "ResultTest1_{0}.txt",counter);
+
+                    if (!File.Exists(fileResult))
+                        using (File.CreateText(fileResult)) { };
+
+                    outf = new StreamWriter(fileResult);
+
+                    Console.SetOut(outf);
+
+                    standardOutput.WriteLine("Запуск теста №{0}",numTest);
+                    standardOutput.WriteLine("-------------------------------------------------------------------------------");
+                    //------------
+                    switch (numTest)
+                    {
+                        case 1: { Test1(); break; }
+                        case 2: { Test2(); break; }
+                        //case 3: { Test3(); break; }
+                    }
+                    //------------
+                    standardOutput.WriteLine("-------------------------------------------------------------------------------");
+                    standardOutput.WriteLine("Теста №{0} завершен.",numTest);
+                }
             }
-            catch (Exception ex) { standardOutput.WriteLine(ex.Message); }
+            catch (Exception ex) { standardOutput.WriteLine("Ошибка: "+ex.Message); }
             finally
             {
                 if (outf != null)
                     outf.Dispose();
 
-                standardOutput.WriteLine("Для продолжения нажмите любую клавишу...");
+                Console.SetOut(standardOutput);
+                Console.WriteLine("\nДля продолжения нажмите любую клавишу...");
                 Console.ReadKey();
             }
         }
@@ -49,27 +72,28 @@ namespace PolarBtreeIndex
             Random rnd = new Random();
             NamesTable nt = new NamesTable(path);
 
-            standardOutput.WriteLine("Начался процесс добавления рандомных данных...");
+            standardOutput.WriteLine("Начался процесс добавления данных...");
             sw.Start();
                 nt.LoadTable((uint)dataSize, 1);
             sw.Stop();
-            standardOutput.WriteLine("Добавление данных завершено. Всего данных = {0}, время = {1}", dataSize, sw.ElapsedMilliseconds);
-            Console.WriteLine("Добавление данных. Всего данных = {0}, время = {1}",dataSize, sw.ElapsedMilliseconds);
+            standardOutput.WriteLine("Добавление данных завершено. Всего данных = {0}, время = {1}мс", nt.GetCount(), sw.ElapsedMilliseconds);
+            Console.WriteLine("Добавление данных. Всего данных = {0}, время = {1}мс", nt.GetCount(), sw.ElapsedMilliseconds);
 
             standardOutput.WriteLine("\nПостроение индексов...");
             sw.Restart();
                 nt.MakeIndex();
             sw.Stop();
-            standardOutput.WriteLine("Индексы построены. Время = {0}", sw.ElapsedMilliseconds);
-            Console.WriteLine("Построение индексов. Время = {0}", sw.ElapsedMilliseconds);
+            standardOutput.WriteLine("Индексы построены. Время = {0}мс", sw.ElapsedMilliseconds);
+            Console.WriteLine("Построение индексов. Время = {0}мс", sw.ElapsedMilliseconds);
 
             standardOutput.WriteLine("\nРазогрев...");
             sw.Restart();
                 nt.Warmup();
             sw.Stop();
-            standardOutput.WriteLine("Разогрев завершен. Время = {0}", sw.ElapsedMilliseconds);
-            Console.WriteLine("Разогрев. Время={0}", sw.ElapsedMilliseconds);
-
+            standardOutput.WriteLine("Разогрев завершен. Время = {0}мс", sw.ElapsedMilliseconds);
+            Console.WriteLine("Разогрев. Время={0}мс", sw.ElapsedMilliseconds);
+            
+            sw.Reset();
             standardOutput.WriteLine("\nПоиск строки 1000 раз...");
             for (int i = 0; i < 1000; ++i)
             {
@@ -79,24 +103,26 @@ namespace PolarBtreeIndex
                 sw.Stop();
                 //standardOutput.WriteLine("Искомая строка: {0}", nt.GetStringById(id));
             }
-            standardOutput.WriteLine("Поиск строки по id. Время = {0}", sw.ElapsedMilliseconds);
-            Console.WriteLine("Поиск строки по id. Время = {0}", sw.ElapsedMilliseconds);
+            standardOutput.WriteLine("Поиск строки по id. Время = {0}мс", sw.ElapsedMilliseconds);
+            Console.WriteLine("Поиск строки по id. Время = {0}мс", sw.ElapsedMilliseconds);
 
-            sw.Reset();
-            standardOutput.WriteLine("\nПоиск id 1000 раз...");
-            for (int i = 0; i < 1000; ++i)
-            {
-                string s = "s" + rnd.Next(100000000);
-                sw.Start();
-                    nt.GetIdByString(s);
-                sw.Stop();
-                //standardOutput.WriteLine("Искомый id строки {0} равен = {1}", s, nt.GetIdByString(s));
-            }
-            standardOutput.WriteLine("Поиск id по строке. Время = {0}", sw.ElapsedMilliseconds);
-            Console.WriteLine("Поиск id по строке. Время = {0}", sw.ElapsedMilliseconds);
+            //sw.Reset();
+            //standardOutput.WriteLine("\nПоиск id 1000 раз...");
+            //for (int i = 0; i < 1000; ++i)
+            //{
+            //    string s = "s" + rnd.Next(100000000);
+            //    sw.Start();
+            //        nt.GetIdByString(s);
+            //    sw.Stop();
+            //    //standardOutput.WriteLine("Искомый id строки {0} равен = {1}", s, nt.GetIdByString(s));
+            //}
+            //standardOutput.WriteLine("Поиск id по строке. Время = {0}", sw.ElapsedMilliseconds);
+            //Console.WriteLine("Поиск id по строке. Время = {0}", sw.ElapsedMilliseconds);
 
             nt.Dispose();
             nt.Delete();
+            
+            standardOutput.WriteLine("\nРезультат сохранен в файле {0}", Path.GetFileName(fileResult));
         }
 
         private static void Test2()
@@ -106,9 +132,13 @@ namespace PolarBtreeIndex
             nt.MakeIndex();
 
             standardOutput.WriteLine("Вывод дерева в файл...");
-            nt.WriteTreeInFile(ResultsPath+"BTree.txt");
-            standardOutput.WriteLine("Вывод дерева в файл закончен. Файл находится в " + Path.GetDirectoryName(ResultsPath + "BTree.txt"));
-            
+            nt.WriteTreeInFile(BTreePath);
+            standardOutput.WriteLine("Вывод дерева в файл закончен. Файл находится в " + resultsPath + "BTree.txt");
+
+            standardOutput.WriteLine("+++++++++++|Таблица имен|+++++++++++++");
+            nt.ShowBearingTable(standardOutput);
+            standardOutput.WriteLine("++++++++++++++++++++++++++++++++++++++");
+
             nt.Dispose();
             nt.Delete();
         }
@@ -128,7 +158,7 @@ namespace PolarBtreeIndex
             else
                 Console.WriteLine("Не нашлась");
             sw.Stop();
-            standardOutput.WriteLine("Время={0}", sw.ElapsedMilliseconds);
+            standardOutput.WriteLine("Время={0}мс", sw.ElapsedMilliseconds);
 
 
             //nt.Remove("TryFindme");
@@ -139,7 +169,7 @@ namespace PolarBtreeIndex
             //else
             //    standardOutput.WriteLine("Не нашлась");
             //sw.Stop();
-            //standardOutput.WriteLine("Время={0}", sw.ElapsedMilliseconds);
+            //standardOutput.WriteLine("Время={0}мс", sw.ElapsedMilliseconds);
 
             nt.Dispose();
             nt.Delete();

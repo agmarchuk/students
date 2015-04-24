@@ -1,0 +1,1 @@
+node^{2,[{85,-843597875},{55,-843466803}],False,[node^{3,[{130,-843860019},{115,-843794483},{100,-843728947}],True,[empty^,empty^,empty^,empty^]},node^{1,[{70,-843532339}],True,[empty^,empty^,empty^,empty^]},node^{1,[{40,-843401267}],True,[empty^,empty^,empty^,empty^]},empty^]}

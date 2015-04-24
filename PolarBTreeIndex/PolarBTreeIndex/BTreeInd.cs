@@ -19,6 +19,25 @@ namespace PolarBtreeIndex
         private int BDegree;
 
         private readonly Func<object, object, int> elementComparer;
+        
+        //Получатель массива ключей в узле
+        //private object[] KeysGetter(object ob)
+        //{
+        //    object[] node = (object[])ob;
+        //    object[] keys = new object[node.Length];
+
+        //    for(int i=0;i<node.Length;i++)
+        //    {
+        //        keys[i]=node[0];
+        //    }
+        //    return keys;
+        //}
+
+        //private object GetKey(object ob)
+        //{
+        //    object[] node = (object[])ob;
+        //    return node[0];
+        //}
 
         private object[] EmptyNode;
 
@@ -163,7 +182,7 @@ namespace PolarBtreeIndex
         /// <param name="leftTree">левое поддерево</param>
         /// <param name="rightTree">правое поддерево</param>
         /// <param name="middleKey">медианный ключ</param>
-        private void SplitNode(PxEntry parent, PxEntry node, out PxEntry leftTree, out PxEntry rightTree, out long middleKey)
+        private void SplitNode(PxEntry parent, PxEntry node, out PxEntry leftTree, out PxEntry rightTree, out object middleKey)
         {
             var keysNode = node.UElement().Field(1).Get() as object[];
             var keysParent = parent.UElement().Field(1).Get() as object[];
@@ -172,7 +191,7 @@ namespace PolarBtreeIndex
             if (!isLeaf)
                 numChilds = keysNode.Length + 1;
 
-            middleKey = (long)keysNode[BDegree - 1];
+            middleKey = keysNode[BDegree - 1];
 
             int position = InsertKeyInArray(ref keysParent, middleKey);
             parent.UElement().Field(0).Set(keysParent.Length);
@@ -276,13 +295,12 @@ namespace PolarBtreeIndex
             //Если узел заполнен
             if (numKeysInNode == 2 * BDegree - 1)
             {
-                long middleKey = 0;
+                object middleKey;
                 PxEntry leftTree, rightTree;
 
                 SplitNode(parent, node, out leftTree, out rightTree, out middleKey);
                 
-                //TODO:Здесь должен быть компаратор compareKeys
-                if (key <= middleKey)
+                if (elementComparer(element, middleKey)<0)
                     AddInNode(parent, leftTree, element);
                 else
                     AddInNode(parent, rightTree, element);
@@ -296,7 +314,7 @@ namespace PolarBtreeIndex
                 int indexChild = numKeysInNode;
                 for (int i = 0; i < numKeysInNode; ++i)
                 {
-                    if (key < (long)arrayKeys[i])
+                    if (elementComparer(element, arrayKeys[i]) < 0)
                     {
                         indexChild = i;
                         break;
@@ -319,13 +337,13 @@ namespace PolarBtreeIndex
             Array.Resize<object>(ref arrayKeys, NumKeys + 1);//выделяем место под новый ключ
             
             int position = NumKeys;
-            while ((position>0)&&(key < (long)arrayKeys[position-1]))
+            while ((position > 0) && (elementComparer(element, arrayKeys[position - 1]) < 0))
             {
                 arrayKeys[position]=arrayKeys[position-1];
                 --position;
             }
 
-            arrayKeys[position] = (object)key;
+            arrayKeys[position] = element;
             return position;
         }
 
@@ -335,9 +353,9 @@ namespace PolarBtreeIndex
         /// <param name="arrayKeys">массив ключей</param>
         /// <param name="node">узел</param>
         /// <param name="key">ключ</param>
-        private void InsertNonFull(ref object[] arrayKeys, PxEntry node, long key)
+        private void InsertNonFull(ref object[] arrayKeys, PxEntry node, object element)
         {
-            InsertKeyInArray(ref arrayKeys, key);
+            InsertKeyInArray(ref arrayKeys, element);
 
             node.UElement().Field(0).Set(arrayKeys.Length);
             node.UElement().Field(1).Set(arrayKeys);
@@ -369,8 +387,8 @@ namespace PolarBtreeIndex
         /// </summary>
         /// <param name="node">Узел, с которого начинается поиск</param>
         /// <param name="key">Ключ</param>
-        /// <returns>true - ключ найден, иначе false</returns>
-        public bool Search(PxEntry node, long key)
+        /// <returns>узел дерева</returns>
+        public PxEntry Search(PxEntry node, object element)
         {
             //получаем массив ключей из узла
             object[] arrayKeys = (node.UElement().Field(1).Get() as object[]);
@@ -379,9 +397,9 @@ namespace PolarBtreeIndex
             int indexChild = numKeysInNode;
             for (int i = 0; i < numKeysInNode; ++i)
             {
-                if (key == (long)arrayKeys[i]) return true;
+                if (elementComparer(element, arrayKeys[i]) == 0) return node;
                 else
-                    if (key < (long)arrayKeys[i])//TODO: компаратор элементов
+                    if (elementComparer(element, arrayKeys[i]) < 0)
                     {
                         indexChild = i;
                         break;
@@ -390,15 +408,12 @@ namespace PolarBtreeIndex
 
             bool isLeaf = (bool)node.UElement().Field(2).Get();
 
-            if (isLeaf == true) return false;
-
-            //получаем массив ключей дочернего узла
-            // var res3 = node.UElement().Field(3).Element(1).UElement().Field(1).GetValue();
-            //Console.WriteLine(res3.Type.Interpret(res3.Value));
+            var entry = Root;
+            if (isLeaf == true) return new PxEntry(entry.Typ, Int64.MinValue, entry.fis);
             
             //продолжаем поиск ключа в дочернем узле 
             PxEntry child = node.UElement().Field(3).Element(indexChild);
-            return Search(child, key);
+            return Search(child, element);
         }
 
         public void WriteTreeInFile(string path)
