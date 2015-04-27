@@ -20,7 +20,7 @@ namespace PolarBtreeIndex
             return String.Compare(ob1.ToString(), ob2.ToString(), StringComparison.Ordinal);//вернётся: -1,0,1
         };
 
-        //Компаратор для офсетов на строки
+        //Компаратор для сравнения узлов дерева
         private Func<object, object, int> elementComparer = (object ob1, object ob2) =>
         {
             object[] node1 = (object[])ob1;
@@ -35,9 +35,10 @@ namespace PolarBtreeIndex
                 long offset1 = (long)node1[0];
                 long offset2 = (long)node2[0];
 
-                object[] pair1 = (object[])entry.Get();
                 entry.offset = offset1;
+                object[] pair1 = (object[])entry.Get();
                 string key1 = (string)pair1[1];
+
                 entry.offset = offset2;
                 object[] pair2 = (object[])entry.Get();
                 string key2 = (string)pair2[1];
@@ -46,6 +47,32 @@ namespace PolarBtreeIndex
             }
             else
                 return ((hash1 < hash2) ? -1 : 1);
+
+        };
+
+        //Компаратор для поиска строки в дереве
+        private Func<object, string, int> hashComparer = (object ob1, string hsh) =>
+        {
+            object[] node1 = (object[])ob1;
+            int hash1 = (int)node1[1];
+            int hash2 = hsh.GetHashCode();
+
+            if (hash1 == hash2) //идем в опорную таблицу, если хеши равны
+            {
+                PaEntry entry = tableNames.Root.Element(0);
+                long offset1 = (long)node1[0];
+
+                entry.offset = offset1;
+                object[] pair1 = (object[])entry.Get();
+                
+                string key1 = (string)pair1[1];
+
+                string key2 = hsh;
+
+                return String.Compare(key1, key2, StringComparison.Ordinal);//вернётся: -1,0,1
+            }
+            else
+                return ((hash1 > hash2) ? -1 : 1);
 
         };
 
@@ -84,7 +111,7 @@ namespace PolarBtreeIndex
 
             //Индексы
             index = new PaCell(tp_id, path + "SimpleIndex.pac", false);
-            BTreeInd = new BTreeInd(25,BTreeType, elementComparer, path + "BTreeIndex.pax");
+            BTreeInd = new BTreeInd(100,BTreeType,hashComparer, elementComparer, path + "BTreeIndex.pxc");
         }
 
         public void MakeIndex()
@@ -114,6 +141,7 @@ namespace PolarBtreeIndex
         {
             long newCode = tableNames.Root.Count();
             long offset = tableNames.Root.AppendElement(new object[] { newCode, str, false });
+            tableNames.Flush();
         }
 
         public void LoadTable(uint portion, uint numberPortion)
@@ -126,7 +154,7 @@ namespace PolarBtreeIndex
 
                 for (uint j = 0; j < portion; j++)
                 {
-                    string s = "s" + rnd.Next((int)(portion * numberPortion));
+                    string s = "s" + rnd.Next(10000000);
                     hs.Add(s);
                 }
                 string[] arr = hs.ToArray();
@@ -207,20 +235,25 @@ namespace PolarBtreeIndex
         {
             foreach (var v in tableNames.Root.ElementValues()) ;
             foreach (var v in index.Root.ElementValues()) ;
+
+            //var res = BTreeInd.Root.GetValue();
+            //res.Type.Interpret(res.Value);
             //TODO: Разогрев дерева?
         }
 
         private PaEntry SearchString(string srch)
         {
             PaEntry entry = tableNames.Root.Element(0);
-            int hash = srch.GetHashCode();
 
-            //TODO:Сделать поиск по хешу, возможно нужен отдельный компаратор
-            PxEntry found = BTreeInd.Search(BTreeInd.Root,hash);
+            int pos=0;
+            PxEntry found = BTreeInd.Search(BTreeInd.Root, srch, out pos);
 
             if (!found.IsEmpty)
             {
-                entry.offset = (long)((object[])found.Get())[0];
+
+                object[] keys = (object[])found.UElement().Field(1).Get();
+                entry.offset = (long)(((object[])(keys[pos]))[0]);
+
                 bool isDeleted = (bool)entry.Field(2).Get();
                 if (!isDeleted)
                 {
@@ -265,6 +298,10 @@ namespace PolarBtreeIndex
         public long GetCount()
         {
             return tableNames.Root.Count();
+        }
+        public int GetBtreeDegree()
+        {
+            return BTreeInd.BDegree;
         }
 
         public void WriteTreeInFile(string path)

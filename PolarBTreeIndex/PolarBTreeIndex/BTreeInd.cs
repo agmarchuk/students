@@ -16,10 +16,11 @@ namespace PolarBtreeIndex
         /// зависит от объема оперативной памяти
         /// обычно берется из диапазона от 50 до 2000
         /// </summary>
-        private int BDegree;
+        public int BDegree;
 
         private readonly Func<object, object, int> elementComparer;
-        
+        private readonly Func<object, string, int> hashComparer;
+
         //Получатель массива ключей в узле
         //private object[] KeysGetter(object ob)
         //{
@@ -66,12 +67,14 @@ namespace PolarBtreeIndex
         /// <param name="readOnly">флаг чтения файла</param>
         public BTreeInd(int Degree, 
                         PType ptElement,
+                        Func<object, string, int> hashComparer,
                         Func<object, object, int> elementComparer, 
                         string filePath, bool 
                         readOnly = false)
                         : base(PStructTree(ptElement), filePath, readOnly)
         {
             this.elementComparer = elementComparer;
+            this.hashComparer = hashComparer;
             BDegree = Degree;
 
             object[] childsEmpty = new object[2 * BDegree];
@@ -388,18 +391,19 @@ namespace PolarBtreeIndex
         /// <param name="node">Узел, с которого начинается поиск</param>
         /// <param name="key">Ключ</param>
         /// <returns>узел дерева</returns>
-        public PxEntry Search(PxEntry node, object element)
+        public PxEntry Search(PxEntry node, object element, out int position)
         {
             //получаем массив ключей из узла
             object[] arrayKeys = (node.UElement().Field(1).Get() as object[]);
             int numKeysInNode = (int)node.UElement().Field(0).Get();
 
+            int h = ((string)element).GetHashCode();
             int indexChild = numKeysInNode;
             for (int i = 0; i < numKeysInNode; ++i)
             {
-                if (elementComparer(element, arrayKeys[i]) == 0) return node;
+                if (hashComparer(arrayKeys[i], (string)element) == 0) { position = i; return node; }
                 else
-                    if (elementComparer(element, arrayKeys[i]) < 0)
+                    if (hashComparer(arrayKeys[i], (string)element) < 0)
                     {
                         indexChild = i;
                         break;
@@ -409,11 +413,11 @@ namespace PolarBtreeIndex
             bool isLeaf = (bool)node.UElement().Field(2).Get();
 
             var entry = Root;
-            if (isLeaf == true) return new PxEntry(entry.Typ, Int64.MinValue, entry.fis);
+            if (isLeaf == true) { position = 0; return new PxEntry(entry.Typ, Int64.MinValue, entry.fis); }
             
             //продолжаем поиск ключа в дочернем узле 
             PxEntry child = node.UElement().Field(3).Element(indexChild);
-            return Search(child, element);
+            return Search(child, element, out position);
         }
 
         public void WriteTreeInFile(string path)

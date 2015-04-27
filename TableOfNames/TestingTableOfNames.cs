@@ -143,6 +143,20 @@ namespace TableOfNames
             sw.Stop();
             Console.WriteLine("Время слияния={0}", sw.ElapsedMilliseconds);
         }
+
+        private static void Run4()
+        {
+            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            TableOfNames ton = new TableOfNames(path);
+            Random rnd = new Random();
+
+            Console.WriteLine("Начался процесс добавления рандомных данных...");
+            ton.LoadTable(1000000, 1);
+
+            Console.WriteLine("Добавление данных. Всего данных = {0}", ton.GetCount());
+
+        }
+
         private static void RunCacheSearch()
         {
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
@@ -177,7 +191,8 @@ namespace TableOfNames
                 //Run1();
                 //Run2();
                 //Run3();
-                RunCacheSearch();
+                Run4();
+                //RunCacheSearch();
             }
             catch (Exception ex)
             {

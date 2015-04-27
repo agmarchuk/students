@@ -13,10 +13,10 @@ namespace PolarBtreeIndex
         private const string path = @"../../../../Databases/";
         //путь до файла результатов теста
         private const string resultsPath = "../../../PolarBTreeIndex/Results/";
+        private static string fileResult = null;
+
         //файл с выводом дерева
         private const string BTreePath = resultsPath + "BTree.txt";
-
-        private static string fileResult = null;
 
         private const int dataSize = 1000000;
 
@@ -28,7 +28,7 @@ namespace PolarBtreeIndex
             try
             {
                 int numTest = 1;
-                int counter = 2;
+                int counter = 7;
                 //for(int counter = 1;counter<2;++counter)
                 {
                     fileResult = String.Format(resultsPath + "ResultTest1_{0}.txt",counter);
@@ -47,7 +47,7 @@ namespace PolarBtreeIndex
                     {
                         case 1: { Test1(); break; }
                         case 2: { Test2(); break; }
-                        //case 3: { Test3(); break; }
+                        case 3: { Test3(); break; }
                     }
                     //------------
                     standardOutput.WriteLine("-------------------------------------------------------------------------------");
@@ -106,18 +106,20 @@ namespace PolarBtreeIndex
             standardOutput.WriteLine("Поиск строки по id. Время = {0}мс", sw.ElapsedMilliseconds);
             Console.WriteLine("Поиск строки по id. Время = {0}мс", sw.ElapsedMilliseconds);
 
-            //sw.Reset();
-            //standardOutput.WriteLine("\nПоиск id 1000 раз...");
-            //for (int i = 0; i < 1000; ++i)
-            //{
-            //    string s = "s" + rnd.Next(100000000);
-            //    sw.Start();
-            //        nt.GetIdByString(s);
-            //    sw.Stop();
-            //    //standardOutput.WriteLine("Искомый id строки {0} равен = {1}", s, nt.GetIdByString(s));
-            //}
-            //standardOutput.WriteLine("Поиск id по строке. Время = {0}", sw.ElapsedMilliseconds);
-            //Console.WriteLine("Поиск id по строке. Время = {0}", sw.ElapsedMilliseconds);
+            sw.Reset();
+            standardOutput.WriteLine("\nПоиск id 1000 раз...");
+            for (int i = 0; i < 1000; ++i)
+            {
+                string s = "s" + rnd.Next(100000000);
+                sw.Start();
+                nt.GetIdByString(s);
+                sw.Stop();
+                //standardOutput.WriteLine("Искомый id строки {0} равен = {1}", s, nt.GetIdByString(s));
+            }
+            standardOutput.WriteLine("Поиск id по строке. Время = {0}мс", sw.ElapsedMilliseconds);
+            Console.WriteLine("Поиск id по строке. Время = {0}мс", sw.ElapsedMilliseconds);
+
+            Console.WriteLine("Степень дерева = {0}", nt.GetBtreeDegree());
 
             nt.Dispose();
             nt.Delete();
@@ -148,15 +150,23 @@ namespace PolarBtreeIndex
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
             NamesTable nt = new NamesTable(path);
             nt.LoadTable((uint)dataSize, 1);
-            nt.MakeIndex();
 
             nt.Add("TryFindme");
+            nt.MakeIndex();
+
+            standardOutput.WriteLine("Вывод дерева в файл...");
+            nt.WriteTreeInFile(BTreePath);
+            standardOutput.WriteLine("Вывод дерева в файл закончен. Файл находится в " + resultsPath + "BTree.txt");
+
+            standardOutput.WriteLine("+++++++++++|Таблица имен|+++++++++++++");
+            nt.ShowBearingTable(standardOutput);
+            standardOutput.WriteLine("++++++++++++++++++++++++++++++++++++++");
 
             sw.Restart();
             standardOutput.WriteLine("\nПоиск строки...");
-            if (nt.GetIdByString("TryFindme") != null) Console.WriteLine("Нашлась");
+            if (nt.GetIdByString("TryFindme") != null) standardOutput.WriteLine("Нашлась");
             else
-                Console.WriteLine("Не нашлась");
+                standardOutput.WriteLine("Не нашлась");
             sw.Stop();
             standardOutput.WriteLine("Время={0}мс", sw.ElapsedMilliseconds);
 

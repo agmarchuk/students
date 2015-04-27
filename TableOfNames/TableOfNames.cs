@@ -205,13 +205,13 @@ namespace TableOfNames
             worker.RunWorkerCompleted += backgroundWorker1_RunWorkerCompleted;
             worker.WorkerSupportsCancellation = true;
             
-            //cache
-            policy = new CacheItemPolicy();
-            policy.AbsoluteExpiration = DateTimeOffset.Now.AddSeconds(10.0);
+            ////cache
+            //policy = new CacheItemPolicy();
+            //policy.AbsoluteExpiration = DateTimeOffset.Now.AddSeconds(10.0);
 
-            List<string> CacheFiles = new List<string>();
-            CacheFiles.Add(path + "IndexNames.pax");
-            policy.ChangeMonitors.Add(new HostFileChangeMonitor(CacheFiles));
+            //List<string> CacheFiles = new List<string>();
+            //CacheFiles.Add(path + "IndexNames.pax");
+            //policy.ChangeMonitors.Add(new HostFileChangeMonitor(CacheFiles));
         }
 
         public void Dispose()
