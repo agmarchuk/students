@@ -118,7 +118,7 @@ namespace PolarBtreeIndex
         {
             index.Clear();
             index.Fill(new object[0]);
-
+            
             foreach (PaEntry ent in tableNames.Root.Elements())
                     //.Where(ent => (bool)ent.Field(2).Get() == false))
             {
@@ -326,7 +326,7 @@ namespace PolarBtreeIndex
         public void Delete()
         {
             System.IO.File.Delete(path + "SimpleIndex.pac");
-            System.IO.File.Delete(path + "BTreeIndex.pax");
+            System.IO.File.Delete(path + "BTreeIndex.pxc");
             System.IO.File.Delete(path + "TableOfNames.pac");
         }
 

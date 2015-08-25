@@ -8,7 +8,7 @@ using System.Windows;
 using System.IO;
 using System.Threading;
 using System.Diagnostics;
-using Microsoft.Office.Interop.Excel;
+//using Microsoft.Office.Interop.Excel;
 using System.Globalization;
 
 namespace PolarProblems
@@ -339,49 +339,49 @@ namespace PolarProblems
         /// Отображает грфик в EXEL, но не сохраняет его. 
         /// </summary>
         /// <param name="xy">корневой массив-линий, листовой точек. Точки должны отличться на одну постоянноую величину</param>
-        public void Draw(int[][] xy)
-        {
-            Microsoft.Office.Interop.Excel.Application application = new Microsoft.Office.Interop.Excel.Application() { Visible = true };
-            var workbooks = application.Workbooks;
-            var wordBook = workbooks.Open(new DirectoryInfo(Directory.GetCurrentDirectory()).Parent.Parent.FullName + @"\chart.xls");
-            var sheet = (_Worksheet)wordBook.ActiveSheet;
-            var chart = (_Chart)wordBook.Charts.Add();
-            chart.Name = "Cкорость от объёма";
-            Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
-            sheet.ClearArrows();
-            for (int j = 0; j < xy.Length; j++)
-                for (int i = 0; i < xy[0].Length; i++)
-                {
-                    {
-                        sheet.Cells[i + 1, j + 1] = xy[j][i].ToString(CultureInfo.InvariantCulture);
-                    }
-                }
+        //public void Draw(int[][] xy)
+        //{
+        //    Microsoft.Office.Interop.Excel.Application application = new Microsoft.Office.Interop.Excel.Application() { Visible = true };
+        //    var workbooks = application.Workbooks;
+        //    var wordBook = workbooks.Open(new DirectoryInfo(Directory.GetCurrentDirectory()).Parent.Parent.FullName + @"\chart.xls");
+        //    var sheet = (_Worksheet)wordBook.ActiveSheet;
+        //    var chart = (_Chart)wordBook.Charts.Add();
+        //    chart.Name = "Cкорость от объёма";
+        //    Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+        //    sheet.ClearArrows();
+        //    for (int j = 0; j < xy.Length; j++)
+        //        for (int i = 0; i < xy[0].Length; i++)
+        //        {
+        //            {
+        //                sheet.Cells[i + 1, j + 1] = xy[j][i].ToString(CultureInfo.InvariantCulture);
+        //            }
+        //        }
 
-            chart.ChartWizard(sheet.Range["A1", "G" + xy[0].Length], XlChartType.xlLine);
-            //System.Runtime.InteropServices.Marshal.ReleaseComObject(chart);
-            //System.Runtime.InteropServices.Marshal.ReleaseComObject(sheet);
-            //wordBook.Close(false);
-            //System.Runtime.InteropServices.Marshal.ReleaseComObject(wordBook);
-            //System.Runtime.InteropServices.Marshal.ReleaseComObject(workbooks);
-            //System.Runtime.InteropServices.Marshal.ReleaseComObject(application);
-        }
-        public void Draw2(int[] xy)
-        {
-            Microsoft.Office.Interop.Excel.Application application = new Microsoft.Office.Interop.Excel.Application() { Visible = true };
-            var workbooks = application.Workbooks;
-            var wordBook = workbooks.Open(new DirectoryInfo(Directory.GetCurrentDirectory()).Parent.Parent.FullName + @"\chart.xls");
-            var sheet = (_Worksheet)wordBook.ActiveSheet;
-            var chart = (_Chart)wordBook.Charts.Add();
-            chart.Name = "Cкорость от объёма";
-            Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
-            sheet.ClearArrows();
-            for (int j = 1; j < xy.Length; j++)
-                    {
-                        sheet.Cells[j, 1] = xy[j].ToString(CultureInfo.InvariantCulture);
-                    }
+        //    chart.ChartWizard(sheet.Range["A1", "G" + xy[0].Length], XlChartType.xlLine);
+        //    //System.Runtime.InteropServices.Marshal.ReleaseComObject(chart);
+        //    //System.Runtime.InteropServices.Marshal.ReleaseComObject(sheet);
+        //    //wordBook.Close(false);
+        //    //System.Runtime.InteropServices.Marshal.ReleaseComObject(wordBook);
+        //    //System.Runtime.InteropServices.Marshal.ReleaseComObject(workbooks);
+        //    //System.Runtime.InteropServices.Marshal.ReleaseComObject(application);
+        //}
+        //public void Draw2(int[] xy)
+        //{
+        //    Microsoft.Office.Interop.Excel.Application application = new Microsoft.Office.Interop.Excel.Application() { Visible = true };
+        //    var workbooks = application.Workbooks;
+        //    var wordBook = workbooks.Open(new DirectoryInfo(Directory.GetCurrentDirectory()).Parent.Parent.FullName + @"\chart.xls");
+        //    var sheet = (_Worksheet)wordBook.ActiveSheet;
+        //    var chart = (_Chart)wordBook.Charts.Add();
+        //    chart.Name = "Cкорость от объёма";
+        //    Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+        //    sheet.ClearArrows();
+        //    for (int j = 1; j < xy.Length; j++)
+        //            {
+        //                sheet.Cells[j, 1] = xy[j].ToString(CultureInfo.InvariantCulture);
+        //            }
 
-            chart.ChartWizard(sheet.Range["A1", "G" + xy.Length], XlChartType.xlLine);
-        }
+        //    chart.ChartWizard(sheet.Range["A1", "G" + xy.Length], XlChartType.xlLine);
+        //}
 
     }
 }

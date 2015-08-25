@@ -7,9 +7,9 @@ using PolarDB;
 using System.Diagnostics.Contracts;
 using System.IO;
 
-namespace PolarBtreeIndex
+namespace ExtendedIndexBTree
 {
-    class BTreeInd: PxCell
+    class BTreeInd<Tkey>: PxCell, IIndex<Tkey>
     {
         /// <summary>
         /// BDegree - минимальная степень дерева 
@@ -18,8 +18,18 @@ namespace PolarBtreeIndex
         /// </summary>
         public int BDegree;
 
+        private PxCell index_cell;
+        private PaCell table_cell;
+        private string path;
+
+        public PxCell IndexCell { get { return index_cell; } set { index_cell = value; } }
+
         private readonly Func<object, object, int> elementComparer;
-        private readonly Func<object, string, int> hashComparer;
+        // функция для сравнения ключа со значением
+        private readonly Func<object, object, int> hashComparer;
+
+        public Func<object, Tkey> KeyProducer { get; set; }
+        public Func<Tkey, int> HalfProducer { get; set; }
 
         private object[] EmptyNode;
 
@@ -47,12 +57,12 @@ namespace PolarBtreeIndex
         /// <param name="filePath">путь к файлу</param>
         /// <param name="readOnly">флаг чтения файла</param>
         public BTreeInd(int Degree, 
-                        PType ptElement,
-                        Func<object, string, int> hashComparer,
+                        PType tpElement,
+                        Func<object, object, int> hashComparer,
                         Func<object, object, int> elementComparer, 
                         string filePath, bool 
                         readOnly = false)
-                        : base(PStructTree(ptElement), filePath, readOnly)
+                        : base(PStructTree(tpElement), filePath, readOnly)
         {
             this.elementComparer = elementComparer;
             this.hashComparer = hashComparer;
@@ -76,6 +86,22 @@ namespace PolarBtreeIndex
                     childsEmpty
                 }
             };
+
+            path = filePath;
+
+            index_cell = this;
+        }
+
+        public void Build()
+        {
+            if (KeyProducer == null) throw new Exception("Err: KeyProducer not defined");
+            table_cell.Root.Scan((offset, o) =>
+            {
+                var key = KeyProducer(o);
+                int hash = (int)HalfProducer(key);
+                Add(new object[] { offset, hash });
+                return true;
+            });
         }
 
         /// <summary>
@@ -239,7 +265,7 @@ namespace PolarBtreeIndex
         /// <summary>
         /// Добавление ключей в узел
         /// </summary>
-        public void Add(object element)
+        private void Add(object element)
         {
             //когда дерево пустое, организовать одиночное значение
             if (Root.Tag() == 0)
@@ -400,7 +426,50 @@ namespace PolarBtreeIndex
             PxEntry child = node.UElement().Field(3).Element(indexChild);
             return Search(child, element, out position);
         }
+        
+        public PxEntry Search(PxEntry node, object element, out int position, ref List<PxEntry> pathToNode)
+        {
+            //Делать из вне
+            //if (pathToNode == null)
+            //    pathToNode = new List<PxEntry>();
 
+            pathToNode.Add(node);
+            //получаем массив ключей из узла
+            object[] arrayKeys = (node.UElement().Field(1).Get() as object[]);
+            int numKeysInNode = (int)node.UElement().Field(0).Get();
+
+            int h = (element).GetHashCode();
+            int indexChild = numKeysInNode;
+            for (int i = 0; i < numKeysInNode; ++i)
+            {
+                int cmp = hashComparer(arrayKeys[i], element);
+                if (cmp == 0) 
+                { 
+                    position = i;
+                    return node; 
+                }
+                else
+                    if (cmp < 0)
+                    {
+                        indexChild = i;
+                        break;
+                    }
+            }
+
+            bool isLeaf = (bool)node.UElement().Field(2).Get();
+
+            var entry = Root;
+            if (isLeaf == true) 
+            { 
+                position = 0;
+                return new PxEntry(entry.Typ, Int64.MinValue, entry.fis); 
+            }
+            
+            //продолжаем поиск ключа в дочернем узле 
+            PxEntry child = node.UElement().Field(3).Element(indexChild);
+            return Search(child, element, out position, ref pathToNode);
+        }
+        
         public void WriteTreeInFile(string path)
         {
             StreamWriter swriter = File.CreateText(path);
@@ -414,13 +483,36 @@ namespace PolarBtreeIndex
                 swriter.Close();
             }
         }
-
-        public bool DeleteKey(object key)
+        private void Delete(ref object key, int pos, ref PxEntry node)
         {
-            if (this.Root.Count() == 0) return false;
+            //получаем массив ключей из узла
+            object[] arrayKeys = (node.UElement().Field(1).Get() as object[]);
+            int numKeysInNode = (int)node.UElement().Field(0).Get();
+            for (int i = pos; i < numKeysInNode-1; ++i)
+            {
+                arrayKeys[i] = arrayKeys[i + 1];
+            }
+            --numKeysInNode;
+            Array.Resize(ref arrayKeys, numKeysInNode);
+            node.UElement().Field(0).Set(numKeysInNode);
+            node.UElement().Field(1).Set(arrayKeys);
+        }
+
+        private bool DeleteKey(ref object key)
+        {
+            //if (this.Root.Count() == 0) return false;
 
             int pos;
-            PxEntry found = Search(Root, key, out pos);
+            List<PxEntry> pathToNode = new List<PxEntry>();
+            PxEntry found = Search(Root, key, out pos, ref pathToNode);
+            if (found.IsEmpty)
+                throw new Exception("Deleted key not found");
+
+            if ((bool)found.UElement().Field(2).Get()) // является ли узел листом
+            {
+                Delete(ref key, pos, ref found);
+            }
+            // делать из вне
             //PaEntry entry = tableNames.Root.Element(0);
 
             //if (!found.IsEmpty)
@@ -437,5 +529,32 @@ namespace PolarBtreeIndex
             return true;
         }
 
+        public IEnumerable<PaEntry> GetAllByKey(Tkey key)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void OnAppendElement(object key)
+        {
+            Add(key);
+        }
+
+        public void OnDeleteElement(object key)
+        {
+           DeleteKey(ref key);
+        }
+
+        public void DropIndex()
+        {
+           index_cell.Close();
+           try
+           {
+               System.IO.File.Delete(path + "BTreeIndex.pxc");
+           }
+            catch(Exception e)
+           {
+               Console.WriteLine(e.ToString());
+           }
+        }
     }
 }

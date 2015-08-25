@@ -204,7 +204,7 @@ namespace PolarProblems
                 wm.FinalExit();
             }
 
-            wm.Draw2(x);//построение графика в Excel
+//            wm.Draw2(x);//построение графика в Excel
         }
 
         private void ButtonCharts_Click(object sender, RoutedEventArgs e)

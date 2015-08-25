@@ -18,7 +18,7 @@ namespace PolarBtreeIndex
         //файл с выводом дерева
         private const string BTreePath = resultsPath + "BTree.txt";
 
-        private const int dataSize = 1000000;
+        private const int dataSize = 10000;
 
         private static TextWriter standardOutput = Console.Out;
         private static StreamWriter outf = null;
@@ -28,10 +28,10 @@ namespace PolarBtreeIndex
             try
             {
                 int numTest = 1;
-                int counter = 7;
-                //for(int counter = 1;counter<2;++counter)
+                int counter = 9;
+                //for (int numTest = 1; numTest <= 2; ++numTest)
                 {
-                    fileResult = String.Format(resultsPath + "ResultTest1_{0}.txt",counter);
+                    fileResult = String.Format(resultsPath + "ResultTest1_{0}.txt", counter);
 
                     if (!File.Exists(fileResult))
                         using (File.CreateText(fileResult)) { };
@@ -46,8 +46,8 @@ namespace PolarBtreeIndex
                     switch (numTest)
                     {
                         case 1: { Test1(); break; }
-                        case 2: { Test2(); break; }
-                        case 3: { Test3(); break; }
+                        //case 2: { Test2(); break; }
+                        //case 3: { Test3(); break; }
                     }
                     //------------
                     standardOutput.WriteLine("-------------------------------------------------------------------------------");
@@ -66,7 +66,7 @@ namespace PolarBtreeIndex
             }
         }
 
-        private static void Test1()
+        private static void Test1(bool warmup = true)
         {
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
             Random rnd = new Random();
@@ -86,12 +86,15 @@ namespace PolarBtreeIndex
             standardOutput.WriteLine("Индексы построены. Время = {0}мс", sw.ElapsedMilliseconds);
             Console.WriteLine("Построение индексов. Время = {0}мс", sw.ElapsedMilliseconds);
 
-            standardOutput.WriteLine("\nРазогрев...");
-            sw.Restart();
-                nt.Warmup();
-            sw.Stop();
-            standardOutput.WriteLine("Разогрев завершен. Время = {0}мс", sw.ElapsedMilliseconds);
-            Console.WriteLine("Разогрев. Время={0}мс", sw.ElapsedMilliseconds);
+            if (warmup)
+            {
+                standardOutput.WriteLine("\nРазогрев...");
+                sw.Restart();
+                    nt.Warmup();
+                sw.Stop();
+                standardOutput.WriteLine("Разогрев завершен. Время = {0}мс", sw.ElapsedMilliseconds);
+                Console.WriteLine("Разогрев. Время={0}мс", sw.ElapsedMilliseconds);
+            }
             
             sw.Reset();
             standardOutput.WriteLine("\nПоиск строки 1000 раз...");
@@ -184,6 +187,6 @@ namespace PolarBtreeIndex
             nt.Dispose();
             nt.Delete();
         }
-        
+     
     }
 }
