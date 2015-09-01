@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Books</name>
+    </assembly>
+    <members>
+        <member name="T:ORMPolar.DbContext">
+            <summary>
+            Класс реализует взаимосвязь между классами и таблицами БД
+            </summary></member>
+    </members>
+</doc>

@@ -1,0 +1,2 @@
+C:\Windows\Microsoft.NET\Framework\v4.0.30319\csc.exe /reference:"E:\My_Documents\Coding\_VSprojects\students\Common\DLLs\PolarDB.dll";System.ComponentModel.DataAnnotations.dll *.cs /doc:"C:\Users\Makc\Desktop\cool.doc"
+pause
