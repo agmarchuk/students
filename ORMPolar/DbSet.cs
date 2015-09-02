@@ -20,6 +20,7 @@ namespace ORMPolar
             DbContext.stables.TryGetValue(entity.GetType(), out _cell);
         }
 
+        //TODO: Для красоты использования можно реализовать интерфейс IEnumerable<TEntity>
         IEnumerator<TEntity> IEnumerable<TEntity>.GetEnumerator()
         {
             throw new NotImplementedException();
@@ -53,9 +54,27 @@ namespace ORMPolar
         {
             return _cell;
         }
-        //public IEnumerable<TEntity> Elements()
-        //{
-        //    //return _cell.Root.Elements()
-        //}
+
+        private TEntity Convert(object[] element)
+        {
+            TEntity entity = new TEntity();
+            var fields = entity.GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
+            int t = 0;
+            foreach (var rec in fields)
+            {
+                rec.SetValue(entity,element[t]);
+                ++t;
+            }
+
+            return entity;
+        }
+
+        public IEnumerable<TEntity> Elements()
+        {
+            return _cell.Root.Elements()
+                .Select<PaEntry, TEntity>(en => Convert((object[])en.Get()));
+        }
+
     }
 }

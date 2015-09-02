@@ -3,15 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using PolarDB;
-using System.IO;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Xml.Linq;
+using System.IO;
 
 namespace ORMPolar
 {
-    class Program
+    [TestClass]
+    public class TestORM
     {
-        static void Testing()
+        [TestMethod]
+        public void TestAppendElement()
         {
             string schemaPath = @"e:\my_documents\coding\_vsprojects\students\ormpolar\schema.xml";
 
@@ -28,31 +30,17 @@ namespace ORMPolar
                 };
 
                 uc.Books.Append(book);
-                book = new Book()
-                {
-                    id = 2,
-                    title = "Мастер йода и зеленки",
-                    pages = 10000,
-                    id_author = 2
-                };
-
-                uc.Books.Append(book);
-
                 uc.Books.Flush();
 
-                foreach (var el in uc.Books.Elements())
-                {
-                    Console.WriteLine("{0}  {1} {2}  {3}", el.id, el.title, el.pages, el.id_author);
-                }
+                var actual = uc.Books.Elements().First();
 
-                //Проверим LINQ
-                Console.WriteLine("\nКнига с id=1");
-                foreach (var el in uc.Books.Elements()
-                    .Where(boook => boook.id == 1))
-                {
-                    Console.WriteLine("{0}  {1} {2}  {3}", el.id, el.title, el.pages, el.id_author);
-                }
+                Assert.AreEqual(book.id, actual.id);
+                Assert.AreEqual(book.id_author, actual.id_author);
+                Assert.AreEqual(book.pages, actual.pages);
+                Assert.AreEqual(book.title, actual.title);
             }
+            
+            //TODO:После выполнения теста
 
             XDocument schema = XDocument.Load(schemaPath);
 
@@ -63,12 +51,7 @@ namespace ORMPolar
                 if (File.Exists(filePath))
                     File.Delete(filePath);
             }        
-        }
 
-        static void Main(string[] args)
-        {
-            Testing();
-            Console.ReadKey();
         }
     }
 }

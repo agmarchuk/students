@@ -14,7 +14,7 @@ namespace ORMPolar
     /// <summary>
     /// Класс реализует взаимосвязь между классами и таблицами БД
     /// </summary>
-    public class DbContext
+    public class DbContext: IDisposable
     {
         private static DbContext instance;
         private XDocument schema;
@@ -76,11 +76,12 @@ namespace ORMPolar
             stables.Add(type,table);
         }
 
-        public void SaveChanges()
+        public void Dispose()
         {
- 
+            foreach (var val in stables.Values)
+            {
+                val.Close();
+            }
         }
-  
-   
     }
 }
