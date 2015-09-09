@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{CE5985AA-7205-4E8C-94E6-FE8DCDABA8AC}"
 EndProject
@@ -18,6 +18,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExtendedIndexBTree", "ExtendedIndexBTree\ExtendedIndexBTree.csproj", "{CE9E0D70-259C-4A29-977C-64232DA34C6F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ORMPolar", "ORMPolar\ORMPolar.csproj", "{DA63279C-44CC-4D69-9B90-F653E8E33BE6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestPlatform", "TestPlatform\TestPlatform.csproj", "{64B2FD9D-62CD-490A-B413-B2B75398A04F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -57,6 +59,10 @@ Global
 		{DA63279C-44CC-4D69-9B90-F653E8E33BE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DA63279C-44CC-4D69-9B90-F653E8E33BE6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DA63279C-44CC-4D69-9B90-F653E8E33BE6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{64B2FD9D-62CD-490A-B413-B2B75398A04F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{64B2FD9D-62CD-490A-B413-B2B75398A04F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64B2FD9D-62CD-490A-B413-B2B75398A04F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{64B2FD9D-62CD-490A-B413-B2B75398A04F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

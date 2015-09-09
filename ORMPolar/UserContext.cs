@@ -18,7 +18,5 @@ namespace ORMPolar
 
         public DbSet<Book> Books;
         public DbSet<Author> Authors;
-
-       
     }
 }

@@ -41,10 +41,10 @@ namespace ExtendedIndexBTree
 
             for (int i = 0; i < 10; ++i)
             {
-                BTreeInd.OnAppendElement((object)i);
+                BTreeInd.AppendElement((object)i);
             }
             // act
-            BTreeInd.OnDeleteElement((object)5);
+            BTreeInd.DeleteElement((object)5);
 
             // assert
             object[] actual = (object[])BTreeInd.Root.UElement().Field(1).Get();

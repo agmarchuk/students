@@ -9,7 +9,7 @@ using System.IO;
 
 namespace ExtendedIndexBTree
 {
-    class BTreeInd<Tkey>: PxCell, IIndex<Tkey>
+    public class BTreeInd<Tkey>: PxCell, IIndex<Tkey>
     {
         /// <summary>
         /// BDegree - минимальная степень дерева 
@@ -39,6 +39,7 @@ namespace ExtendedIndexBTree
             structBtree.Variants = new[]{
                 new NamedType("empty", new PType(PTypeEnumeration.none)),
                 new NamedType("node", new PTypeRecord(//узел
+                    //TODO: ключи должны быть типа TKey
                     new NamedType("NumKeys", new PType(PTypeEnumeration.integer)),//количество ключей
                     new NamedType("Keys", new PTypeSequence(tpElement)),//массив ключей
                     new NamedType("IsLeaf", new PType(PTypeEnumeration.boolean)),//является ли узел листом
@@ -534,27 +535,19 @@ namespace ExtendedIndexBTree
             throw new NotImplementedException();
         }
 
-        public void OnAppendElement(object key)
+        public void AppendElement(object key)
         {
             Add(key);
         }
 
-        public void OnDeleteElement(object key)
+        public void DeleteElement(object key)
         {
            DeleteKey(ref key);
         }
 
-        public void DropIndex()
+        public void Dispose()
         {
            index_cell.Close();
-           try
-           {
-               System.IO.File.Delete(path + "BTreeIndex.pxc");
-           }
-            catch(Exception e)
-           {
-               Console.WriteLine(e.ToString());
-           }
         }
     }
 }

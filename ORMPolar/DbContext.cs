@@ -19,7 +19,8 @@ namespace ORMPolar
         private static DbContext instance;
         private XDocument schema;
 
-        public static Dictionary<Type, PaCell> stables = new Dictionary<Type,PaCell>();
+        public static Dictionary<Type, PaCell> sTables = new Dictionary<Type, PaCell>();
+        public static Dictionary<Type, string> sTablePaths = new Dictionary<Type, string> ();
 
         public static DbContext GetInstance()
         {
@@ -73,12 +74,13 @@ namespace ORMPolar
                 )
             );
             PaCell table = new PaCell(typeCell,fullName,false);
-            stables.Add(type,table);
+            sTables.Add(type,table);
+            sTablePaths.Add(type, fullName);
         }
 
         public void Dispose()
         {
-            foreach (var val in stables.Values)
+            foreach (var val in sTables.Values)
             {
                 val.Close();
             }

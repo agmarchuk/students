@@ -10,9 +10,8 @@ namespace ExtendedIndexBTree
         IEnumerable<PaEntry> GetAllByKey(Tkey key);
         void Build();
         //long Count();
-        void OnAppendElement(object key);
-        void OnDeleteElement(object key);
-        void DropIndex();
+        void AppendElement(object key);
+        void DeleteElement(object key);
 
         PxCell IndexCell { get; }
     }

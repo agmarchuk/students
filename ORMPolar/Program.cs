@@ -62,7 +62,13 @@ namespace ORMPolar
                 string filePath = element.Attribute("path").Value;
                 if (File.Exists(filePath))
                     File.Delete(filePath);
+
+                //filePath = Path.GetDirectoryName(element.Attribute("path").Value);
+                //if (File.Exists(filePath+ "/Index[books]-[title].pxc"))
+                //    File.Delete(filePath + "/Index[books]-[title].pxc");
             }        
+
+
         }
 
         static void Main(string[] args)

@@ -6,18 +6,100 @@ using System.Threading.Tasks;
 using PolarDB;
 using System.Collections;
 using System.Reflection;
+using ExtendedIndexBTree;
+using System.Xml.Linq;
+using System.IO;
 
 namespace ORMPolar
 {
     class DbSet<TEntity>: IEnumerable<TEntity> where TEntity:new()
     {
-        private PaCell _cell;
+        private static PaCell _cell;
+
+        //Компаратор для поиска строки в дереве
+        private Func<object, object, int> hashComparer = (object ob1, object ob2) =>
+        {
+            if ((int)ob1 > (int)ob2) return -1;
+            if ((int)ob1 < (int)ob2) return 1;
+            return 0;
+        };
+
+
+        //Компаратор для сравнения узлов дерева
+        private Func<object, object, int> elementComparer = (object ob1, object ob2) =>
+        {
+            object[] node1 = (object[])ob1;
+            int hash1 = (int)node1[1];
+
+            object[] node2 = (object[])ob2;
+            int hash2 = (int)node2[1];
+
+            if (hash1 == hash2) //идем в опорную таблицу, если хеши равны
+            {
+                PaEntry entry = _cell.Root.Element(0);
+                long offset1 = (long)node1[0];
+                long offset2 = (long)node2[0];
+
+                entry.offset = offset1;
+                object[] pair1 = (object[])entry.Get();
+                string key1 = (string)pair1[1];
+
+                entry.offset = offset2;
+                object[] pair2 = (object[])entry.Get();
+                string key2 = (string)pair2[1];
+
+                return String.Compare(key1, key2, StringComparison.Ordinal);//вернётся: -1,0,1
+            }
+            else
+                return ((hash1 < hash2) ? -1 : 1);
+
+        };
 
         public DbSet()
         {
             TEntity entity = new TEntity();
-            Type t = entity.GetType();
-            DbContext.stables.TryGetValue(entity.GetType(), out _cell);
+            Type entityType = entity.GetType();
+            DbContext.sTables.TryGetValue(entity.GetType(), out _cell);
+
+            var fields = entityType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
+            foreach (var field in fields)
+            {
+                Attribute[] attr = field.GetCustomAttributes().ToArray();
+
+                if (attr.Count()>0)
+
+                   for(int i=0; i < attr.Count(); ++i)
+                    {
+                        if (attr[i] is IndexAttribute)
+                        {
+                            Type typeField = field.GetType();
+
+                            NamedType offset = new NamedType("offset", new PType(PTypeEnumeration.longinteger));
+                            NamedType key;
+
+                            if (typeField == typeof(long))
+                                key = new NamedType("key", new PType(PTypeEnumeration.longinteger));
+                            else
+                                key = new NamedType("key", new PType(PTypeEnumeration.integer));
+
+                            PType BTreeType = new PTypeRecord(offset, key);
+
+                            string path;
+                            DbContext.sTablePaths.TryGetValue(entityType, out path);
+
+                            BTreeInd<string> BTreeInd = new BTreeInd<string>(100, BTreeType, 
+                                hashComparer, elementComparer,
+                                Path.GetDirectoryName(path) + 
+                                "/Index["+ Path.GetFileNameWithoutExtension(path) + "]-["+field.Name+"].pxc");
+
+                            //TODO: Починить для числовых ключей
+                            OnAppendElement += (off, ent) => { BTreeInd.AppendElement(new object[] { off, field.GetValue(ent).GetHashCode() }); };
+
+                          }
+
+                    }
+            }
         }
 
         //TODO: Для красоты использования можно реализовать интерфейс IEnumerable<TEntity>
@@ -39,17 +121,23 @@ namespace ORMPolar
         public void Append(TEntity entity)
         {
             var fields = entity.GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-            
-            _cell.Root.AppendElement(
+
+            long offset = _cell.Root.AppendElement(
                 fields
                     .Select<FieldInfo, object>(fieldInfo => fieldInfo.GetValue(entity))
                     .ToArray<object>()
             );
+            OnAppendElement(offset, entity);
+            //какой ключ от какого поля
         }
+
+        public event Action<long, TEntity> OnAppendElement = (long o, TEntity entity) => { };
+
         public void Flush()
         {
             _cell.Flush();
         }
+
         public PaCell Get()
         {
             return _cell;

@@ -9,6 +9,7 @@ namespace ORMPolar
     public class Book
     {
         public int id;
+        [Index("BTree")]
         public string title;
         public int pages;
         public int id_author;
@@ -16,6 +17,7 @@ namespace ORMPolar
 
     public class Author
     {
+        //[IndexArray]
         public int id;
         public string name;
     }
