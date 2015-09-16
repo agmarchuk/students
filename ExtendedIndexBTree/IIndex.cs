@@ -4,11 +4,12 @@ using System.Collections.Generic;
 
 namespace ExtendedIndexBTree
 {
-    public interface IIndex<Tkey>
+    public interface IIndex
 	{
-        Func<object, Tkey> KeyProducer { get; set; }
-        IEnumerable<PaEntry> GetAllByKey(Tkey key);
-        void Build();
+        //Func<object, object> KeyProducer { get; set; }
+        IEnumerable<long> FindAll(object key);
+        long FindFirst(object key);
+        //void Build();
         //long Count();
         void AppendElement(object key);
         void DeleteElement(object key);

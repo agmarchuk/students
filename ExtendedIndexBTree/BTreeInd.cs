@@ -9,7 +9,7 @@ using System.IO;
 
 namespace ExtendedIndexBTree
 {
-    public class BTreeInd<Tkey>: PxCell, IIndex<Tkey>
+    public class BTreeInd: PxCell, IIndex
     {
         /// <summary>
         /// BDegree - минимальная степень дерева 
@@ -19,7 +19,7 @@ namespace ExtendedIndexBTree
         public int BDegree;
 
         private PxCell index_cell;
-        private PaCell table_cell;
+        //private PaCell table_cell;
         private string path;
 
         public PxCell IndexCell { get { return index_cell; } set { index_cell = value; } }
@@ -28,8 +28,8 @@ namespace ExtendedIndexBTree
         // функция для сравнения ключа со значением
         private readonly Func<object, object, int> hashComparer;
 
-        public Func<object, Tkey> KeyProducer { get; set; }
-        public Func<Tkey, int> HalfProducer { get; set; }
+        public Func<object, object> KeyProducer { get; set; }
+        public Func<object, int> HalfProducer { get; set; }
 
         private object[] EmptyNode;
 
@@ -57,13 +57,13 @@ namespace ExtendedIndexBTree
         /// <param name="compareKeys">компаратор</param>
         /// <param name="filePath">путь к файлу</param>
         /// <param name="readOnly">флаг чтения файла</param>
-        public BTreeInd(int Degree, 
-                        PType tpElement,
+        public BTreeInd(PType tpElement,
                         Func<object, object, int> hashComparer,
                         Func<object, object, int> elementComparer, 
                         string filePath, bool 
-                        readOnly = false)
-                        : base(PStructTree(tpElement), filePath, readOnly)
+                        readOnly = false,
+                        int Degree = 100
+                        ): base(PStructTree(tpElement), filePath, readOnly)
         {
             this.elementComparer = elementComparer;
             this.hashComparer = hashComparer;
@@ -93,17 +93,17 @@ namespace ExtendedIndexBTree
             index_cell = this;
         }
 
-        public void Build()
-        {
-            if (KeyProducer == null) throw new Exception("Err: KeyProducer not defined");
-            table_cell.Root.Scan((offset, o) =>
-            {
-                var key = KeyProducer(o);
-                int hash = (int)HalfProducer(key);
-                Add(new object[] { offset, hash });
-                return true;
-            });
-        }
+        //public void Build()
+        //{
+        //    if (KeyProducer == null) throw new Exception("Err: KeyProducer not defined");
+        //    table_cell.Root.Scan((offset, o) =>
+        //    {
+        //        var key = KeyProducer(o);
+        //        int hash = (int)HalfProducer(key);
+        //        Add(new object[] { offset, hash });
+        //        return true;
+        //    });
+        //}
 
         /// <summary>
         /// Выделение памяти для узла
@@ -530,8 +530,23 @@ namespace ExtendedIndexBTree
             return true;
         }
 
-        public IEnumerable<PaEntry> GetAllByKey(Tkey key)
+        /// <summary>
+        /// Поиск всех указателей на ключи из опорной таблицы
+        /// </summary>
+        /// <param name="key">поисковый ключ</param>
+        /// <returns>возвращает набор офсетов</returns>
+        public IEnumerable<long> FindAll(object key)
         {
+
+            throw new NotImplementedException();
+        }
+
+        public long FindFirst(object key)
+        {
+            int pos;
+            PxEntry node = Search(Root, key, out pos);
+            //TODO: берем ключ в найденном узле и извлекаем из него офсет
+
             throw new NotImplementedException();
         }
 

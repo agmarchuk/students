@@ -15,6 +15,7 @@ namespace ORMPolar
     class DbSet<TEntity>: IEnumerable<TEntity> where TEntity:new()
     {
         private static PaCell _cell;
+        private Dictionary<string, IIndex> _indexDictionary;
 
         //Компаратор для поиска строки в дереве
         private Func<object, object, int> hashComparer = (object ob1, object ob2) =>
@@ -83,19 +84,21 @@ namespace ORMPolar
                             else
                                 key = new NamedType("key", new PType(PTypeEnumeration.integer));
 
-                            PType BTreeType = new PTypeRecord(offset, key);
+                            PType bTreeType = new PTypeRecord(offset, key);
 
                             string path;
                             DbContext.sTablePaths.TryGetValue(entityType, out path);
 
-                            BTreeInd<string> BTreeInd = new BTreeInd<string>(100, BTreeType, 
+                            IIndex bTreeInd = new BTreeInd(bTreeType, 
                                 hashComparer, elementComparer,
                                 Path.GetDirectoryName(path) + 
                                 "/Index["+ Path.GetFileNameWithoutExtension(path) + "]-["+field.Name+"].pxc");
 
-                            //TODO: Починить для числовых ключей
-                            OnAppendElement += (off, ent) => { BTreeInd.AppendElement(new object[] { off, field.GetValue(ent).GetHashCode() }); };
+                            _indexDictionary.Add(field.Name, bTreeInd);
 
+                            //TODO: Починить для числовых ключей
+                            OnAppendElement += (off, ent) => { bTreeInd.AppendElement(new object[] { off, field.GetValue(ent).GetHashCode() }); };
+                             
                           }
 
                     }
@@ -164,5 +167,32 @@ namespace ORMPolar
                 .Select<PaEntry, TEntity>(en => Convert((object[])en.Get()));
         }
 
+        public IEnumerable<TEntity> FindAll(string field, object key)
+        {
+            IIndex index;
+            _indexDictionary.TryGetValue(field, out index);
+
+            PaEntry entry = new PaEntry(_cell.Type, _cell.Root.offset, _cell);
+
+            return index.FindAll(key)
+                .Select<long, TEntity>(
+                off =>
+                {
+                    entry.offset = off;
+                    return Convert((object[])entry.Get());
+                }
+                );
+        }
+        public TEntity FindFirst(string field, object key)
+        {
+            IIndex index;
+            _indexDictionary.TryGetValue(field, out index);
+
+            PaEntry entry = new PaEntry(_cell.Type, _cell.Root.offset, _cell);
+
+            entry.offset = index.FindFirst(key);
+
+            return Convert((object[])entry.Get());
+        }
     }
 }
