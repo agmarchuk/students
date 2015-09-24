@@ -35,6 +35,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="PolarDB">
+      <HintPath>..\Common\DLLs\PolarDB.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
   </ItemGroup>
   <Choose>
@@ -52,6 +55,13 @@
   <ItemGroup>
     <Compile Include="CreateDBTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestBtree.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ExtendedIndexBTree\ExtendedIndexBTree.csproj">
+      <Project>{ce9e0d70-259c-4a29-977c-64232da34c6f}</Project>
+      <Name>ExtendedIndexBTree</Name>
+    </ProjectReference>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

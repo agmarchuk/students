@@ -48,7 +48,6 @@
     <Compile Include="BTreeInd.cs" />
     <Compile Include="IIndex.cs" />
     <Compile Include="Program.cs" />
-    <Compile Include="TestBtree.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

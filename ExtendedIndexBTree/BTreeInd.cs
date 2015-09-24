@@ -16,7 +16,7 @@ namespace ExtendedIndexBTree
         /// зависит от объема оперативной памяти
         /// обычно берется из диапазона от 50 до 2000
         /// </summary>
-        public int BDegree;
+        public int bDegree;
 
         private PxCell index_cell;
         //private PaCell table_cell;
@@ -24,9 +24,10 @@ namespace ExtendedIndexBTree
 
         public PxCell IndexCell { get { return index_cell; } set { index_cell = value; } }
 
+        //keyComparer используется при поиске ключа
+        private readonly Func<object, object, int> keyComparer;
+        //elementComparer используется при добавлении элементов
         private readonly Func<object, object, int> elementComparer;
-        // функция для сравнения ключа со значением
-        private readonly Func<object, object, int> hashComparer;
 
         public Func<object, object> KeyProducer { get; set; }
         public Func<object, int> HalfProducer { get; set; }
@@ -58,20 +59,19 @@ namespace ExtendedIndexBTree
         /// <param name="filePath">путь к файлу</param>
         /// <param name="readOnly">флаг чтения файла</param>
         public BTreeInd(PType tpElement,
-                        Func<object, object, int> hashComparer,
-                        Func<object, object, int> elementComparer, 
+                        Func<object, object, int> keyComparer,
+                         Func<object, object, int> elementComparer,
                         string filePath, bool 
                         readOnly = false,
-                        int Degree = 100
+                        int degree = 100
                         ): base(PStructTree(tpElement), filePath, readOnly)
         {
+            this.keyComparer = keyComparer;
             this.elementComparer = elementComparer;
-            this.hashComparer = hashComparer;
-            BDegree = Degree;
+            bDegree = degree;
+            object[] childsEmpty = new object[2 * bDegree];
 
-            object[] childsEmpty = new object[2 * BDegree];
-
-            for (int i = 0; i < 2 * BDegree; i++)
+            for (int i = 0; i < 2 * bDegree; i++)
             {
                 childsEmpty[i] = new object[] { 0, null };
             }
@@ -128,10 +128,10 @@ namespace ExtendedIndexBTree
             object[] arr1 = new object[(keys.Length - 1) / 2];
             object[] arr2 = new object[(keys.Length - 1) / 2];
 
-            for (int i = 0; i < BDegree - 1; i++)
+            for (int i = 0; i < bDegree - 1; i++)
             {
                 arr1[i] = keys[i];
-                arr2[i] = keys[i + BDegree];
+                arr2[i] = keys[i + bDegree];
             }
 
             byte[][] childsLeft = new byte[numChilds][];
@@ -157,7 +157,7 @@ namespace ExtendedIndexBTree
             DiskAllocateNode(Root);
 
             Root.UElement().Field(0).Set(1);
-            Root.UElement().Field(1).Set(new object[] { keys[BDegree-1] });
+            Root.UElement().Field(1).Set(new object[] { keys[bDegree-1] });
             Root.UElement().Field(2).Set(false);
 
             PxEntry Left = Root.UElement().Field(3).Element(0);
@@ -202,7 +202,7 @@ namespace ExtendedIndexBTree
             if (!isLeaf)
                 numChilds = keysNode.Length + 1;
 
-            middleKey = keysNode[BDegree - 1];
+            middleKey = keysNode[bDegree - 1];
 
             int position = InsertKeyInArray(ref keysParent, middleKey);
             parent.UElement().Field(0).Set(keysParent.Length);
@@ -214,10 +214,10 @@ namespace ExtendedIndexBTree
             object[] arr1 = new object[(keysNode.Length - 1) / 2];
             object[] arr2 = new object[(keysNode.Length - 1) / 2];
 
-            for (int i = 0; i < BDegree - 1; i++)
+            for (int i = 0; i < bDegree - 1; i++)
             {
                 arr1[i] = keysNode[i];
-                arr2[i] = keysNode[i + BDegree];
+                arr2[i] = keysNode[i + bDegree];
             }
 
             byte[][] childsLeft = new byte[numChilds][];
@@ -279,7 +279,7 @@ namespace ExtendedIndexBTree
             else
             {
                 int numKeysInNode = (int)Root.UElement().Field(0).Get();
-                if (numKeysInNode == 2 * BDegree-1)
+                if (numKeysInNode == 2 * bDegree-1)
                 {
                     SplitRoot();
                 }
@@ -304,7 +304,7 @@ namespace ExtendedIndexBTree
             bool isLeaf = (bool)node.UElement().Field(2).Get();
 
             //Если узел заполнен
-            if (numKeysInNode == 2 * BDegree - 1)
+            if (numKeysInNode == 2 * bDegree - 1)
             {
                 object middleKey;
                 PxEntry leftTree, rightTree;
@@ -384,7 +384,7 @@ namespace ExtendedIndexBTree
             int numKeysInNode = (int)parent.UElement().Field(0).Get();
             int numChilds = numKeysInNode + 1;
 
-            for (int j = BDegree*2-1; j > position; --j )
+            for (int j = bDegree*2-1; j > position; --j )
             {
                 var headChild = parent.UElement().Field(3).Element(j-1).GetHead();
                 parent.UElement().Field(3).Element(j).SetHead(headChild);
@@ -405,17 +405,13 @@ namespace ExtendedIndexBTree
             object[] arrayKeys = (node.UElement().Field(1).Get() as object[]);
             int numKeysInNode = (int)node.UElement().Field(0).Get();
 
-            int h = ((string)element).GetHashCode();
             int indexChild = numKeysInNode;
-            for (int i = 0; i < numKeysInNode; ++i)
+            for (int i = 0; i < numKeysInNode; ++i) 
             {
-                if (hashComparer(arrayKeys[i], (string)element) == 0) { position = i; return node; }
-                else
-                    if (hashComparer(arrayKeys[i], (string)element) < 0)
-                    {
-                        indexChild = i;
-                        break;
-                    }
+                int cmp = keyComparer(element, arrayKeys[i]);
+
+                if (cmp == 0) { position = i; return node; }
+                if (cmp < 0)  { indexChild = i; break;     }
             }
 
             bool isLeaf = (bool)node.UElement().Field(2).Get();
@@ -439,22 +435,13 @@ namespace ExtendedIndexBTree
             object[] arrayKeys = (node.UElement().Field(1).Get() as object[]);
             int numKeysInNode = (int)node.UElement().Field(0).Get();
 
-            int h = (element).GetHashCode();
-            int indexChild = numKeysInNode;
+             int indexChild = numKeysInNode;
             for (int i = 0; i < numKeysInNode; ++i)
             {
-                int cmp = hashComparer(arrayKeys[i], element);
-                if (cmp == 0) 
-                { 
-                    position = i;
-                    return node; 
-                }
-                else
-                    if (cmp < 0)
-                    {
-                        indexChild = i;
-                        break;
-                    }
+                int cmp = keyComparer(arrayKeys[i], element);
+
+                if (cmp == 0) { position = i; return node; }
+                if (cmp < 0) { indexChild = i; break; }
             }
 
             bool isLeaf = (bool)node.UElement().Field(2).Get();
@@ -504,8 +491,8 @@ namespace ExtendedIndexBTree
             //if (this.Root.Count() == 0) return false;
 
             int pos;
-            List<PxEntry> pathToNode = new List<PxEntry>();
-            PxEntry found = Search(Root, key, out pos, ref pathToNode);
+            //List<PxEntry> pathToNode = new List<PxEntry>();
+            PxEntry found = Search(Root, key, out pos);
             if (found.IsEmpty)
                 throw new Exception("Deleted key not found");
 
@@ -545,13 +532,18 @@ namespace ExtendedIndexBTree
         {
             int pos;
             PxEntry node = Search(Root, key, out pos);
-            //TODO: берем ключ в найденном узле и извлекаем из него офсет
 
-            throw new NotImplementedException();
+            if (node.IsEmpty) return Int64.MinValue;
+
+            object[] arrayKeys = (node.UElement().Field(1).Get() as object[]);
+            object[] pair = (object[])arrayKeys[pos];
+            long offset = (long)pair[0];
+
+            return offset;
         }
 
         public void AppendElement(object key)
-        {
+        {  
             Add(key);
         }
 
