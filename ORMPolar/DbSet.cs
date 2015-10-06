@@ -12,7 +12,7 @@ using System.IO;
 
 namespace ORMPolar
 {
-    class DbSet<TEntity>: IEnumerable<TEntity> where TEntity:new()
+    public class DbSet<TEntity>: IEnumerable<TEntity> where TEntity:new()
     {
         private static PaCell _cell;
         private Dictionary<string, IIndex> _indexDictionary = new Dictionary<string, IIndex>();

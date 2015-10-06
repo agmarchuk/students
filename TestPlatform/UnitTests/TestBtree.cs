@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PolarDB;
 using ExtendedIndexBTree;
 
-namespace TestPlatform
+namespace TestPlatform.UnitTests
 {
     [TestClass]
     public class TestBtree

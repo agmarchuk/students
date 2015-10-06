@@ -4,10 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using PolarBtreeIndex;
 
-namespace PolarBtreeIndex
+namespace TestPlatform.SpeedTests
 {
-    class TestingNamesTable
+    class TestTableOfNamesBTreePolar
     {
         //путь до базы
         private const string path = @"../../../../Databases/";

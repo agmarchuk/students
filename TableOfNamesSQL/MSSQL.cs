@@ -9,7 +9,7 @@ using System.Xml.Linq;
 
 namespace TableOfNamesSQL
 {
-    class MSSQL : ISQLDB
+    public class MSSQL : ISQLDB
     {
         private DbConnection connection = null;
         private string dbName = "";

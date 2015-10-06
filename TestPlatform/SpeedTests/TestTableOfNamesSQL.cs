@@ -4,13 +4,14 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TableOfNamesSQL;
 
-namespace TableOfNamesSQL
+namespace TestPlatform.SpeedTests
 {
     /// <summary>
     /// Testing SQL Databases
     /// </summary>
-    class Testing
+    class TestTableOfNamesSQL
     {
         //путь до базы
         private const string path = "../../../Databases/";
@@ -96,7 +97,7 @@ namespace TableOfNamesSQL
                     //                    Environment.CurrentDirectory + "/",
                     //                    "mssql");
                     //Testing.Run(sqlite, N);
-                    Testing.Run(mysql, N);
+                    TestTableOfNamesSQL.Run(mysql, N);
                     //Testing.Run(mssql, N);
 
                     //sqlite.Delete();

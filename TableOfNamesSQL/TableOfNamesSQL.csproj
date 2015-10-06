@@ -70,7 +70,6 @@
     <Compile Include="MSSQL.cs" />
     <Compile Include="ISQLDB.cs" />
     <Compile Include="SQLite.cs" />
-    <Compile Include="Testing.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

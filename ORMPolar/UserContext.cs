@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ORMPolar
 {
-    class UserContext: DbContext
+    public class UserContext: DbContext
     {
         //TODO: Реализация синглтона на совести разработчика
         public UserContext(string schemaPath)

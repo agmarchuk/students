@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Xml.Linq;
 using System.IO;
+using ORMPolar;
 
-namespace ORMPolar
+namespace TestPlatform.UnitTests
 {
     [TestClass]
     public class TestORM

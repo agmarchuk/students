@@ -5,10 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using PolarDB;
 using System.Net;
+using TableOfNames;
 
-namespace TableOfNames
+namespace TestPlatform.SpeedTests
 {
-    class TestingTableOfNames
+    class TestTableOfNamesBinTreePolar
     {
         //путь до базы
         private const string path = "../../../Databases/";
@@ -16,7 +17,7 @@ namespace TableOfNames
         public static void Run1()
         {
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-            TableOfNames ton = new TableOfNames(path);
+            TableOfNames.TableOfNames ton = new TableOfNames.TableOfNames(path);
             Random rnd = new Random();
 
             Console.WriteLine("Начался процесс добавления рандомных данных...");
@@ -74,7 +75,7 @@ namespace TableOfNames
         public static void Run2()
         {
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-            TableOfNames ton = new TableOfNames(path);
+            TableOfNames.TableOfNames ton = new TableOfNames.TableOfNames(path);
             Random rnd = new Random();
 
             Console.WriteLine("Начался процесс добавления рандомных данных...");
@@ -119,7 +120,7 @@ namespace TableOfNames
         public static void Run3()
         {
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-            TableOfNames ton = new TableOfNames(path);
+            TableOfNames.TableOfNames ton = new TableOfNames.TableOfNames(path);
 
             sw.Start();
             for (int i = 0; i < 100000; ++i)
@@ -147,7 +148,7 @@ namespace TableOfNames
         private static void Run4()
         {
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-            TableOfNames ton = new TableOfNames(path);
+            TableOfNames.TableOfNames ton = new TableOfNames.TableOfNames(path);
             Random rnd = new Random();
 
             Console.WriteLine("Начался процесс добавления рандомных данных...");
@@ -160,7 +161,7 @@ namespace TableOfNames
         private static void RunCacheSearch()
         {
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-            TableOfNames ton = new TableOfNames(path);
+            TableOfNames.TableOfNames ton = new TableOfNames.TableOfNames(path);
 
             sw.Restart();
             Console.WriteLine("\nПоиск строки...");

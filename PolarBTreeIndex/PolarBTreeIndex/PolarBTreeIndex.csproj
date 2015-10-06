@@ -47,7 +47,6 @@
     <Compile Include="BTreeInd.cs" />
     <Compile Include="NamesTable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TestingNamesTable.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
