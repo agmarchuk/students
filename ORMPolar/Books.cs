@@ -12,6 +12,7 @@ namespace ORMPolar
         [Index("BTree")]
         public string title;
         public int pages;
+        [Index("BTree")]
         public int id_author;
     }
 

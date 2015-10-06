@@ -44,6 +44,18 @@ namespace TestPlatform
             return ((value1 < value2) ? -1 : 1);
         };
 
+        private Func<object, object, int> keyComparer3 = (object ob1, object ob2) =>
+        {
+            int value1 = (int)ob1;
+
+            object[] node2 = (object[])ob2;
+            int value2 = (int)node2[1];
+
+            if (value1 == value2) return 0;
+
+            return ((value1 < value2) ? -1 : 1);
+        };
+
         private const string path = @"../../../Databases/";
 
         [TestMethod]
@@ -56,9 +68,9 @@ namespace TestPlatform
 
             BTreeInd BTreeInd = new BTreeInd(BTreeType, keyComparer, keyComparer, path + "BTreeIndex.pxc");
 
-            object[] expected = new object[] {0,1,2,3,4};
+            object[] expected = new object[] { 0, 1, 2, 3, 4 };
 
-            for (int i = 0; i < 6; ++i) 
+            for (int i = 0; i < 6; ++i)
             {
                 BTreeInd.AppendElement((object)i);
             }
@@ -68,7 +80,7 @@ namespace TestPlatform
             //BTreeInd.WriteTreeInFile(@"E:\My_Documents\Coding\_VSprojects\students\Databases\btree.txt");
             // assert
             object[] actual = (object[])BTreeInd.Root.UElement().Field(1).Get();
-            for(int i=0;i<expected.Length;++i)
+            for (int i = 0; i < expected.Length; ++i)
             {
                 Assert.AreEqual(expected[i], actual[i]);
             }
@@ -79,23 +91,53 @@ namespace TestPlatform
         {
             // arrange
             PType BTreeType = new PTypeRecord(
-                new NamedType("off",new PType(PTypeEnumeration.longinteger)),
+                new NamedType("off", new PType(PTypeEnumeration.longinteger)),
                 new NamedType("key", new PType(PTypeEnumeration.integer))
                 );
 
-            BTreeInd BTreeInd = new BTreeInd(BTreeType, keyComparer2, elementComparer, path + "BTreeIndex.pxc",degree:2);
+            BTreeInd BTreeInd = new BTreeInd(BTreeType, keyComparer2, elementComparer, path + "BTreeIndex.pxc", degree: 2);
 
             long expected = 1700L;
 
             for (int i = 0; i < 50; ++i)
             {
-                BTreeInd.AppendElement(new object[] { (object)((long)(i*100)), (object)i });
+                BTreeInd.AppendElement(new object[] { (object)((long)(i * 100)), (object)i });
             }
             // act
             long actual = BTreeInd.FindFirst(17);
 
             // assert
             Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void TestFindAllKeys()
+        {
+            // arrange
+            PType BTreeType = new PTypeRecord(
+                new NamedType("off", new PType(PTypeEnumeration.longinteger)),
+                new NamedType("key", new PType(PTypeEnumeration.integer))
+                );
+
+            BTreeInd BTreeInd = new BTreeInd(BTreeType, keyComparer2, elementComparer, path + "BTreeIndex.pxc", degree: 2);
+
+            long expected = 300L;
+
+            for (int i = 0; i < 5; ++i)
+            {
+                BTreeInd.AppendElement(new object[] { (object)((long)(i * 100)), (object)i });
+            }
+
+            //BTreeInd.WriteTreeInFile(@"E:\My_Documents\Coding\_VSprojects\students\Databases\btree.txt");
+            BTreeInd.AppendElement(new object[] { (object)((long)(3 * 100)), (object)3 });
+            BTreeInd.AppendElement(new object[] { (object)((long)(3 * 100)), (object)3 });
+
+            // act
+            List<long> actual = (List<long>)BTreeInd.FindAll(3);
+
+            // assert
+
+            Assert.AreEqual(expected, actual.First());
         }
     }
 }

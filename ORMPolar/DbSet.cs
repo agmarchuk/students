@@ -15,7 +15,7 @@ namespace ORMPolar
     class DbSet<TEntity>: IEnumerable<TEntity> where TEntity:new()
     {
         private static PaCell _cell;
-        private Dictionary<string, IIndex> _indexDictionary;
+        private Dictionary<string, IIndex> _indexDictionary = new Dictionary<string, IIndex>();
 
         private Func<object, object, int> stringKeyComparer = (object ob1, object ob2) =>
         {
@@ -102,7 +102,6 @@ namespace ORMPolar
 
                             //TODO: Починить для числовых ключей
                             OnAppendElement += (off, ent) => { bTreeInd.AppendElement(new object[] { off, field.GetValue(ent).GetHashCode() }); };
-                             
                           }
 
                     }
