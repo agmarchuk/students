@@ -78,7 +78,7 @@ namespace ORMPolar
             sTablePaths.Add(type, fullName);
         }
 
-        public void Dispose()
+        virtual public void Dispose()
         {
             foreach (var val in sTables.Values)
             {

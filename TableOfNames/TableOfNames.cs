@@ -10,7 +10,7 @@ using System.Runtime.Caching;
 
 namespace TableOfNames
 {
-    class TableOfNames
+    public class TableOfNames
     {
         private string path;
 

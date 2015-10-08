@@ -8,9 +8,10 @@ namespace TestPlatform.SpeedTests
 {
     public interface IPerformanceTest
     {
-        long CreateDB();
-        long FindFirst();
-        long FindAll();
-        long Reading();
+        long CreateDB(int size);
+        void DeleteDB();
+
+        long FindFirst(string fieldName, object obj);
+        long FindAll(string fieldName, object obj, out int count);
     }
 }

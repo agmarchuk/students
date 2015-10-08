@@ -9,7 +9,7 @@ using System.Xml.Linq;
 
 namespace ORMPolar
 {
-    class Program
+    public class Program
     {
         static void Testing()
         {
@@ -71,9 +71,14 @@ namespace ORMPolar
 
         }
 
+
+
         static void Main(string[] args)
         {
             Testing();
+
+            
+
             Console.ReadKey();
         }
     }

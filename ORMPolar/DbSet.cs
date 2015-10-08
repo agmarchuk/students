@@ -12,12 +12,12 @@ using System.IO;
 
 namespace ORMPolar
 {
-    public class DbSet<TEntity>: IEnumerable<TEntity> where TEntity:new()
+    public class DbSet<TEntity>: IEnumerable<TEntity>, IDisposable where TEntity:class, new()
     {
         private static PaCell _cell;
         private Dictionary<string, IIndex> _indexDictionary = new Dictionary<string, IIndex>();
 
-        private Func<object, object, int> stringKeyComparer = (object ob1, object ob2) =>
+        private Func<object, object, int> stringElementComparer = (object ob1, object ob2) =>
         {
             object[] node1 = (object[])ob1;
             int hash1 = (int)node1[1];
@@ -46,7 +46,7 @@ namespace ORMPolar
 
         };
 
-        private Func<object, object, int> elementComparer = (object ob1, object ob2) =>
+        private Func<object, object, int> intElementComparer = (object ob1, object ob2) =>
         {
             object[] node1 = (object[])ob1;
             int value1 = (int)node1[1];
@@ -58,6 +58,40 @@ namespace ORMPolar
 
             return ((value1 < value2) ? -1 : 1);
         };
+
+        private Func<object, object, int> intKeyComparer = (object ob1, object ob2) =>
+        {
+            int value1 = (int)ob1;
+
+            object[] node2 = (object[])ob2;
+            int value2 = (int)node2[1];
+
+            if (value1 == value2) return 0;
+
+            return ((value1 < value2) ? -1 : 1);
+        };
+
+        private Func<object, object, int> stringKeyComparer = (object ob1, object ob2) =>
+        {
+            string value1 = (string)ob1;
+            int hash1 = value1.GetHashCode();
+
+            object[] node2 = (object[])ob2;
+            int hash2 = (int)node2[1];
+
+            if (hash1 == hash2) //идем в опорную таблицу, если хеши равны
+            {
+                PaEntry entry = _cell.Root.Element(0);
+                entry.offset = (long)node2[0];
+                object[] pair2 = (object[])entry.Get();
+                string value2 = (string)pair2[1];
+
+                return String.Compare(value1, value2, StringComparison.Ordinal);//вернётся: -1,0,1
+            }
+            else
+                return ((hash1 < hash2) ? -1 : 1);
+        };
+
 
         public DbSet()
         {
@@ -77,10 +111,11 @@ namespace ORMPolar
                     {
                         if (attr[i] is IndexAttribute)
                         {
-                            Type typeField = field.GetType();
+                            Type typeField = field.FieldType;
 
                             NamedType offset = new NamedType("offset", new PType(PTypeEnumeration.longinteger));
                             NamedType key;
+                            
 
                             if (typeField == typeof(long))
                                 key = new NamedType("key", new PType(PTypeEnumeration.longinteger));
@@ -92,17 +127,34 @@ namespace ORMPolar
                             string path;
                             DbContext.sTablePaths.TryGetValue(entityType, out path);
 
-                            IIndex bTreeInd = new BTreeInd(bTreeType,
-                                stringKeyComparer,
-                                elementComparer,
-                                Path.GetDirectoryName(path) + 
-                                "/Index["+ Path.GetFileNameWithoutExtension(path) + "]-["+field.Name+"].pxc");
+                            IIndex bTreeInd;
 
+                            if (typeField == typeof(string))
+                            {
+                                bTreeInd = new BTreeInd(bTreeType,
+                                stringKeyComparer,
+                                stringElementComparer,
+                                //Path.GetDirectoryName(path) +
+                                //@"/media/data/My_Documents/Coding/_VSprojects/students/TestPlatform/bin/Release/"+
+                                "Index[" + Path.GetFileNameWithoutExtension(path) + "]-[" + field.Name + "].pxc");
+                            }
+                            else
+                            {
+                                bTreeInd = new BTreeInd(bTreeType,
+                                intKeyComparer,
+                                intElementComparer,
+                                //Path.GetDirectoryName(path) +
+                                //@"/media/data/My_Documents/Coding/_VSprojects/students/TestPlatform/bin/Release/" +
+                                "Index[" + Path.GetFileNameWithoutExtension(path) + "]-[" + field.Name + "].pxc");
+                            }
+                            
                             _indexDictionary.Add(field.Name, bTreeInd);
 
-                            //TODO: Починить для числовых ключей
-                            OnAppendElement += (off, ent) => { bTreeInd.AppendElement(new object[] { off, field.GetValue(ent).GetHashCode() }); };
-                          }
+                            if (typeField == typeof(string))
+                                OnAppendElement += (off, ent) => bTreeInd.AppendElement(new object[] { off, field.GetValue(ent).GetHashCode() }); 
+                            else
+                                OnAppendElement += (off, ent) => bTreeInd.AppendElement(new object[] { off, field.GetValue(ent) });
+                        }
 
                     }
             }
@@ -133,8 +185,8 @@ namespace ORMPolar
                     .Select<FieldInfo, object>(fieldInfo => fieldInfo.GetValue(entity))
                     .ToArray<object>()
             );
+
             OnAppendElement(offset, entity);
-            //какой ключ от какого поля
         }
 
         public event Action<long, TEntity> OnAppendElement = (long o, TEntity entity) => { };
@@ -170,12 +222,12 @@ namespace ORMPolar
                 .Select<PaEntry, TEntity>(en => Convert((object[])en.Get()));
         }
 
-        public IEnumerable<TEntity> FindAll(string field, object key)
+        public IEnumerable<TEntity> FindAll(string fieldName, object key)
         {
             IIndex index;
-            _indexDictionary.TryGetValue(field, out index);
+            _indexDictionary.TryGetValue(fieldName, out index);
 
-            PaEntry entry = new PaEntry(_cell.Type, _cell.Root.offset, _cell);
+            PaEntry entry = _cell.Root.Element(0);
 
             return index.FindAll(key)
                 .Select<long, TEntity>(
@@ -186,16 +238,27 @@ namespace ORMPolar
                 }
                 );
         }
-        public TEntity FindFirst(string field, object key)
+        public TEntity FindFirst(string fieldName, object key)
         {
             IIndex index;
-            _indexDictionary.TryGetValue(field, out index);
+            _indexDictionary.TryGetValue(fieldName, out index);
 
-            PaEntry entry = new PaEntry(_cell.Type, _cell.Root.offset, _cell);
+            PaEntry entry = _cell.Root.Element(0);
+
 
             entry.offset = index.FindFirst(key);
 
+            if (entry.offset < 0) return null;
+            
             return Convert((object[])entry.Get());
+        }
+
+        public void Dispose()
+        {
+            foreach(var index in _indexDictionary.Values)
+            {
+                index.Dispose();
+            }
         }
     }
 }

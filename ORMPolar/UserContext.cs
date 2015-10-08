@@ -18,5 +18,12 @@ namespace ORMPolar
 
         public DbSet<Book> Books;
         public DbSet<Author> Authors;
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            Books.Dispose();
+            Authors.Dispose();
+        }
     }
 }

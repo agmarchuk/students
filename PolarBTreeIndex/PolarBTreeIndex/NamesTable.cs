@@ -7,7 +7,7 @@ using PolarDB;
 
 namespace PolarBtreeIndex
 {
-    class NamesTable
+    public class NamesTable
     {
         private string path;
         private PType tp, BTreeType;

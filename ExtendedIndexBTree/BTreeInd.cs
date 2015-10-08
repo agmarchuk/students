@@ -40,7 +40,6 @@ namespace ExtendedIndexBTree
             structBtree.Variants = new[]{
                 new NamedType("empty", new PType(PTypeEnumeration.none)),
                 new NamedType("node", new PTypeRecord(//узел
-                    //TODO: ключи должны быть типа TKey
                     new NamedType("NumKeys", new PType(PTypeEnumeration.integer)),//количество ключей
                     new NamedType("Keys", new PTypeSequence(tpElement)),//массив ключей
                     new NamedType("IsLeaf", new PType(PTypeEnumeration.boolean)),//является ли узел листом
@@ -425,38 +424,6 @@ namespace ExtendedIndexBTree
         }
 
 
-        public PxEntry Search(PxEntry node, object element, ref List<long> offsets, ref List<PxEntry> pathToNode)
-        {
-            //получаем массив ключей из узла
-            object[] arrayKeys = (node.UElement().Field(1).Get() as object[]);
-            int numKeysInNode = (int)node.UElement().Field(0).Get();
-
-            int indexChild = numKeysInNode;
-            for (int i = 0; i < numKeysInNode; ++i)
-            {
-                int cmp = keyComparer(element, arrayKeys[i]);
-
-                if (cmp == 0)
-                {
-                    pathToNode.Add(node);
-                    long offset = (long)((object[])(arrayKeys[i]))[0];
-                    offsets.Add(offset);
-                }
-                if (cmp < 0) { indexChild = i; break; }
-            }
-
-            //TODO: Допилить поиск в соседних узлах
-
-            bool isLeaf = (bool)node.UElement().Field(2).Get();
-
-            var entry = Root;
-            if (isLeaf == true) { return new PxEntry(entry.Typ, Int64.MinValue, entry.fis); }
-
-            //продолжаем поиск ключа в дочернем узле 
-            PxEntry child = node.UElement().Field(3).Element(indexChild);
-            return Search(child, element, ref offsets, ref pathToNode);
-        }
-
         public PxEntry Search(PxEntry node, object element, out int position, ref List<PxEntry> pathToNode)
         {
             //Делать из вне
@@ -559,14 +526,12 @@ namespace ExtendedIndexBTree
         /// <returns>возвращает набор офсетов</returns>
         public IEnumerable<long> FindAll(object key)
         {
-
             List<long> offsets = new List<long>();
             Queue<PxEntry> entries = new Queue<PxEntry>();
 
-            //получаем массив ключей из узла
             PxEntry currentNode;
             entries.Enqueue(Root);
-            //цикл какой-то
+            
             while (entries.Count > 0)
             {
                 currentNode = entries.Dequeue();

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PolarDB;
 using ExtendedIndexBTree;
+using System.IO;
 
 namespace TestPlatform.UnitTests
 {
@@ -44,18 +45,6 @@ namespace TestPlatform.UnitTests
             return ((value1 < value2) ? -1 : 1);
         };
 
-        private Func<object, object, int> keyComparer3 = (object ob1, object ob2) =>
-        {
-            int value1 = (int)ob1;
-
-            object[] node2 = (object[])ob2;
-            int value2 = (int)node2[1];
-
-            if (value1 == value2) return 0;
-
-            return ((value1 < value2) ? -1 : 1);
-        };
-
         private const string path = @"../../../Databases/";
 
         [TestMethod]
@@ -80,6 +69,11 @@ namespace TestPlatform.UnitTests
             //BTreeInd.WriteTreeInFile(@"E:\My_Documents\Coding\_VSprojects\students\Databases\btree.txt");
             // assert
             object[] actual = (object[])BTreeInd.Root.UElement().Field(1).Get();
+
+            BTreeInd.Dispose();
+            if (File.Exists("../../../Databases " + "/BTreeIndex.pxc"))
+                File.Delete("../../../Databases " + "/BTreeIndex.pxc");
+
             for (int i = 0; i < expected.Length; ++i)
             {
                 Assert.AreEqual(expected[i], actual[i]);
@@ -105,6 +99,10 @@ namespace TestPlatform.UnitTests
             }
             // act
             long actual = BTreeInd.FindFirst(17);
+
+            BTreeInd.Dispose();
+            if (File.Exists("../../../Databases " + "/BTreeIndex.pxc"))
+                File.Delete("../../../Databases " + "/BTreeIndex.pxc");
 
             // assert
             Assert.AreEqual(expected, actual);
@@ -135,6 +133,9 @@ namespace TestPlatform.UnitTests
             // act
             List<long> actual = (List<long>)BTreeInd.FindAll(3);
 
+            BTreeInd.Dispose();
+            if (File.Exists("../../../Databases " + "/BTreeIndex.pxc"))
+                File.Delete("../../../Databases " + "/BTreeIndex.pxc");
             // assert
 
             Assert.AreEqual(expected, actual.First());

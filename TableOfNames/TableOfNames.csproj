@@ -46,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BinaryTreeIndex.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="TableOfNames.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

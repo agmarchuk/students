@@ -4,8 +4,8 @@ using System.Collections.Generic;
 
 namespace ExtendedIndexBTree
 {
-    public interface IIndex
-	{
+    public interface IIndex: IDisposable
+    {
         //Func<object, object> KeyProducer { get; set; }
         IEnumerable<long> FindAll(object key);
         long FindFirst(object key);

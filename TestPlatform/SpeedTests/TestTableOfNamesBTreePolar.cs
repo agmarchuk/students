@@ -8,7 +8,7 @@ using PolarBtreeIndex;
 
 namespace TestPlatform.SpeedTests
 {
-    class TestTableOfNamesBTreePolar
+    public class TestTableOfNamesBTreePolar
     {
         //путь до базы
         private const string path = @"../../../../Databases/";
@@ -24,7 +24,7 @@ namespace TestPlatform.SpeedTests
         private static TextWriter standardOutput = Console.Out;
         private static StreamWriter outf = null;
 
-        static void Main(string[] args)
+        public static void Main1(string[] args)
         {
             try
             {

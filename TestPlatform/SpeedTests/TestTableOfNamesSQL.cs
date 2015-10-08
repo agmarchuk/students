@@ -59,7 +59,7 @@ namespace TestPlatform.SpeedTests
             Console.WriteLine("Поиск 1000 раз id по строке. Время={0}", sw.ElapsedMilliseconds);
         }
 
-        static void Main(string[] args)
+        public static void Main2(string[] args)
         {
 
             SQLite sqlite = null;

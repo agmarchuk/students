@@ -41,8 +41,6 @@ namespace TestPlatform.UnitTests
                 Assert.AreEqual(book.title, actual.title);
             }
             
-            //TODO:После выполнения теста
-
             XDocument schema = XDocument.Load(schemaPath);
 
             foreach (XElement element in schema.Root.Elements()

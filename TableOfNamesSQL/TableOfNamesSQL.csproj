@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>TableOfNamesSQL</RootNamespace>
     <AssemblyName>TableOfNamesSQL</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
@@ -69,6 +69,7 @@
     <Compile Include="MySQL.cs" />
     <Compile Include="MSSQL.cs" />
     <Compile Include="ISQLDB.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="SQLite.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

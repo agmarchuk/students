@@ -9,7 +9,7 @@ using TableOfNames;
 
 namespace TestPlatform.SpeedTests
 {
-    class TestTableOfNamesBinTreePolar
+    public class TestTableOfNamesBinTreePolar
     {
         //путь до базы
         private const string path = "../../../Databases/";
@@ -185,7 +185,7 @@ namespace TestPlatform.SpeedTests
             Console.WriteLine("Время слияния={0}", sw.ElapsedMilliseconds);
         }
 
-        static void Main(string[] args)
+        public static void Main3(string[] args)
         {
             try
             {
