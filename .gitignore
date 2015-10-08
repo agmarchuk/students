@@ -213,6 +213,5 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
-/Databases/*.pac
-/PolarProblems/Databases/*.pac
-/PolarProblems/Databases/*.pxc
+*.pac
+*.pxc

@@ -339,7 +339,6 @@ namespace TestPolarBtree
 
                 SplitNode(parent, node, out leftTree, out rightTree, out middleKey);
                 
-                //TODO:Здесь должен быть компаратор compareKeys
                 if (key <= middleKey)
                     AddInNode(parent, leftTree, key);
                 else
