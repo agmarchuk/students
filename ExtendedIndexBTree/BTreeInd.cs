@@ -19,7 +19,6 @@ namespace ExtendedIndexBTree
         public int bDegree;
 
         private PxCell index_cell;
-        //private PaCell table_cell;
         private string path;
 
         public PxCell IndexCell { get { return index_cell; } set { index_cell = value; } }
@@ -91,18 +90,6 @@ namespace ExtendedIndexBTree
 
             index_cell = this;
         }
-
-        //public void Build()
-        //{
-        //    if (KeyProducer == null) throw new Exception("Err: KeyProducer not defined");
-        //    table_cell.Root.Scan((offset, o) =>
-        //    {
-        //        var key = KeyProducer(o);
-        //        int hash = (int)HalfProducer(key);
-        //        Add(new object[] { offset, hash });
-        //        return true;
-        //    });
-        //}
 
         /// <summary>
         /// Выделение памяти для узла
@@ -393,6 +380,42 @@ namespace ExtendedIndexBTree
         }
 
         /// <summary>
+        /// Функция поиска
+        /// </summary>
+        /// <param name="node">исходный узел</param>
+        /// <param name="element">искомый ключ</param>
+        /// <returns>оффсет</returns>
+        public long Search(PxEntry node, object element)
+        {
+            object[] arrayKeys;
+            while (true)
+            {
+                arrayKeys = (node.UElement().Field(1).Get() as object[]);
+                int numKeysInNode = (int)node.UElement().Field(0).Get();
+                int indexChild = numKeysInNode;
+                for (int i = 0; i < numKeysInNode; ++i)
+                {
+                    int cmp = keyComparer(element, arrayKeys[i]);
+                    if (cmp == 0)
+                    {
+                        long offset = (long)(arrayKeys[i] as object[])[0];
+                        return offset;
+                    }
+                    if (cmp < 0)
+                    {
+                        indexChild = i;
+                        break;
+                    }
+                }
+                bool isLeaf = (bool)node.UElement().Field(2).Get();
+                if (isLeaf == true)
+                    return Int64.MinValue;
+
+                node = node.UElement().Field(3).Element(indexChild);
+            }
+        }
+
+        /// <summary>
         /// Метод поиска ключа в дереве
         /// </summary>
         /// <param name="node">Узел, с которого начинается поиск</param>
@@ -438,7 +461,7 @@ namespace ExtendedIndexBTree
             int indexChild = numKeysInNode;
             for (int i = 0; i < numKeysInNode; ++i)
             {
-                int cmp = keyComparer(arrayKeys[i], element);
+                int cmp = keyComparer(element,arrayKeys[i]);
 
                 if (cmp == 0) { position = i; return node; }
                 if (cmp < 0) { indexChild = i; break; }
@@ -580,16 +603,17 @@ namespace ExtendedIndexBTree
 
         public long FindFirst(object key)
         {
-            int pos;
-            PxEntry node = Search(Root, key, out pos);
+            //int pos;
+            //PxEntry node = Search(Root, key, out pos);
 
-            if (node.IsEmpty) return Int64.MinValue;
+            //if (node.IsEmpty) return Int64.MinValue;
 
-            object[] arrayKeys = (node.UElement().Field(1).Get() as object[]);
-            object[] pair = (object[])arrayKeys[pos];
-            long offset = (long)pair[0];
+            //object[] arrayKeys = (node.UElement().Field(1).Get() as object[]);
+            //object[] pair = (object[])arrayKeys[pos];
+            //long offset = (long)pair[0];
 
-            return offset;
+            //return offset;
+            return Search(Root, key);
         }
 
         public void AppendElement(object key)

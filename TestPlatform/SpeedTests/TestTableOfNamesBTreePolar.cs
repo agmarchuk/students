@@ -11,15 +11,15 @@ namespace TestPlatform.SpeedTests
     public class TestTableOfNamesBTreePolar
     {
         //путь до базы
-        private const string path = @"../../../../Databases/";
+        private const string path = @"../../../Databases/";
         //путь до файла результатов теста
-        private const string resultsPath = "../../../PolarBTreeIndex/Results/";
+        private const string resultsPath = "../../../PolarBTreeIndex/PolarBTreeIndex/Results/";
         private static string fileResult = null;
 
         //файл с выводом дерева
         private const string BTreePath = resultsPath + "BTree.txt";
 
-        private const int dataSize = 10000;
+        private const int dataSize = 1000000;
 
         private static TextWriter standardOutput = Console.Out;
         private static StreamWriter outf = null;
@@ -29,7 +29,7 @@ namespace TestPlatform.SpeedTests
             try
             {
                 int numTest = 1;
-                int counter = 9;
+                int counter = 10;
                 //for (int numTest = 1; numTest <= 2; ++numTest)
                 {
                     fileResult = String.Format(resultsPath + "ResultTest1_{0}.txt", counter);

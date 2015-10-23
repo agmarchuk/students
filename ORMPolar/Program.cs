@@ -21,18 +21,18 @@ namespace ORMPolar
 
                 Book book = new Book()
                 {
-                    id = 1,
+                    //id = 1,
                     title = "Война и мир",
-                    pages = 1001,
+                    //pages = 1001,
                     id_author = 1
                 };
 
                 uc.Books.Append(book);
                 book = new Book()
                 {
-                    id = 2,
+                    //id = 2,
                     title = "Мастер йода и зеленки",
-                    pages = 10000,
+                    //pages = 10000,
                     id_author = 2
                 };
 
@@ -42,15 +42,15 @@ namespace ORMPolar
                 
                 foreach (var el in uc.Books.Elements())
                 {
-                    Console.WriteLine("{0}  {1} {2}  {3}", el.id, el.title, el.pages, el.id_author);
+                    //Console.WriteLine("{0}  {1} {2}  {3}", el.id, el.title, el.pages, el.id_author);
                 }
 
                 //Проверим LINQ
                 Console.WriteLine("\nКнига с id=1");
-                foreach (var el in uc.Books.Elements()
-                    .Where(boook => boook.id == 1))
+                //foreach (var el in uc.Books.Elements()
+                    //.Where(boook => boook.id == 1))
                 {
-                    Console.WriteLine("{0}  {1} {2}  {3}", el.id, el.title, el.pages, el.id_author);
+                    //Console.WriteLine("{0}  {1} {2}  {3}", el.id, el.title, el.pages, el.id_author);
                 }
             }
 
