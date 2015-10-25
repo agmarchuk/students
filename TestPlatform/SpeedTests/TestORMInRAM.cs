@@ -50,8 +50,6 @@ namespace TestPlatform.SpeedTests
 
                 sw.Stop();
             }
-
-            sw.Stop();
             return sw.ElapsedMilliseconds;
         }
 

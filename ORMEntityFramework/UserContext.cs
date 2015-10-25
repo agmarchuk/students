@@ -9,7 +9,9 @@ namespace ORMEntityFramework
 {
     public class UserContext : DbContext
     {
-        public UserContext(): base("DBConnection")
+        public UserContext() : //base("DBConnection")
+                               //base(@"data source=(localdb)\ProjectsV12;AttachDbFilename=E:\My_Documents\Coding\_VSprojects\students\Databases\BookStoreEF.mdf;Integrated Security=True;Connect Timeout=30")
+            base(@"data source=MAKC-PC\SQLEXPRESS;AttachDbFilename=D:\My_Documents\Coding\_VSprojects\students\Databases\BookStoreEF.mdf;Integrated Security=True;Connect Timeout=30")
         {
 
         }

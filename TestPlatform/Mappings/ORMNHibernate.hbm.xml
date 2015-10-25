@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" auto-import="true" 
+                   assembly="TestPlatform" namespace="TestPlatform">
+
+  <class name="TestPlatform.BookLibrary+Book" table="Book" dynamic-update="true">
+    
+    <cache usage="read-write"/>
+    
+    <id name="id" type="System.Int32">
+      <generator class="native" />
+    </id>
+    <property name="title" column="title"/>
+    <property name="pages" type="System.Int32" column="pages"/>
+  </class>
+
+ <class name="TestPlatform.BookLibrary+Author" table="Author" dynamic-update="true">
+    <cache usage="read-write"/>
+    
+    <id name="id" type="System.Int32">
+      <generator class="native" />
+    </id>
+    <property name="name" column="title"/>
+
+    <set name="books" table="bookAuthor">
+      <key column="authorId"/>
+      <many-to-many class="TestPlatform.BookLibrary+Book" column="bookId"/>
+    </set>
+  </class>
+
+</hibernate-mapping>
