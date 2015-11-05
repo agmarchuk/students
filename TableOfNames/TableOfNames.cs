@@ -10,6 +10,9 @@ using System.Runtime.Caching;
 
 namespace TableOfNames
 {
+    /// <summary>
+    /// Класс, реализующий таблицу имен и концепцию слабой динамики. 
+    /// </summary>
     public class TableOfNames
     {
         private string path;
@@ -19,6 +22,7 @@ namespace TableOfNames
         private BinaryTreeIndex binTreeInd, binTreeInd_tmp;
         private CacheItemPolicy policy;
 
+        #region Comparers
         //Компаратор для офсетов на строки
         private Func<object, object, int> elementCompare = (object ob1, object ob2) =>
             {
@@ -47,8 +51,8 @@ namespace TableOfNames
                     return ((hash1 < hash2) ? -1 : 1);
                
             };
+        #endregion
 
-         
         private const long maxSizeDictionary = 100000;
 
 

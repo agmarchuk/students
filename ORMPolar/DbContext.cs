@@ -11,9 +11,7 @@ using System.Xml.Linq;
 
 namespace ORMPolar
 {
-    /// <summary>
-    /// Класс реализует взаимосвязь между классами и таблицами БД
-    /// </summary>
+    // TODO: оставить регистрацию ячеек и реализовать поддержку связей, остальной код перенести в DbSet
     public class DbContext: IDisposable
     {
         private static DbContext instance;
@@ -56,7 +54,7 @@ namespace ORMPolar
             if (t == typeof(int)) return new PType(PTypeEnumeration.integer);
             if (t == typeof(long)) return new PType(PTypeEnumeration.longinteger);
             if (t == typeof(bool)) return new PType(PTypeEnumeration.boolean);
-            if (t == typeof(double)) return new PType(PTypeEnumeration.real);
+            if (t == typeof(double) || (t == typeof(float))) return new PType(PTypeEnumeration.real);
             throw new Exception("Error type");
         }
 

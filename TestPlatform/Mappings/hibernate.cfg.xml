@@ -8,9 +8,9 @@
       NHibernate.Driver.SqlClientDriver
     </property>
     <property name="connection.connection_string">
-      <!--Server=(localdb)\ProjectsV12; Initial Catalog=BooksStore;Integrated Security=SSPI;!-->
-      <!--Data Source=(localdb)\ProjectsV12;AttachDbFilename=E:\My_Documents\Coding\_VSprojects\students\Databases\BookStore.mdf;Integrated Security=True;Connect Timeout=30!-->
-      Data Source=MAKC-PC\SQLEXPRESS;AttachDbFilename=D:\My_Documents\Coding\_VSprojects\students\Databases\BookStore.mdf;Integrated Security=True;Connect Timeout=30
+      Server=(LocalDB)\ProjectsV12; Initial Catalog=BookStore;Integrated Security=True;Connect Timeout=3
+      <!--Data Source=(localdb)\ProjectsV12;AttachDbFilename=E:\My_Documents\Coding\_VSprojects\students\Databases\BookStore.mdf;Integrated Security=True;Connect Timeout=30-->
+      <!--data source=MAKC-NB\SQLEXPRESS;Initial Catalog=BookStore;Integrated Security=False;User ID=sa;Password=123;Connect Timeout=10;-->
     </property>
     <property name="dialect">
       NHibernate.Dialect.MsSql2012Dialect

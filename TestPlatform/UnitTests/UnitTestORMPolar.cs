@@ -11,7 +11,7 @@ using ORMPolar;
 namespace TestPlatform.UnitTests
 {
     [TestClass]
-    public class TestORM
+    public class UnitTestORMPolar
     {
         [TestMethod]
         public void TestAppendElement()

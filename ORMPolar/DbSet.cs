@@ -12,11 +12,16 @@ using System.IO;
 
 namespace ORMPolar
 {
+    /// <summary>
+    /// Класс, представляющий набор сущностей, хранящихся в БД
+    /// </summary>
+    /// <typeparam name="TEntity"></typeparam>
     public class DbSet<TEntity>: IEnumerable<TEntity>, IDisposable where TEntity:class, new()
     {
         private static PaCell _cell;
         private Dictionary<string, IIndex> _indexDictionary = new Dictionary<string, IIndex>();
 
+        #region Comparers
         private Func<object, object, int> stringElementComparer = (object ob1, object ob2) =>
         {
             object[] node1 = (object[])ob1;
@@ -91,15 +96,17 @@ namespace ORMPolar
             else
                 return ((hash1 < hash2) ? -1 : 1);
         };
+        #endregion
 
+        FieldInfo[] fields;
 
-        public DbSet()
+        public DbSet() //TODO: необходим рефакторинг
         {
             TEntity entity = new TEntity();
             Type entityType = entity.GetType();
             DbContext.sTables.TryGetValue(entity.GetType(), out _cell);
 
-            var fields = entityType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+            fields = entityType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
 
             foreach (var field in fields)
             {
@@ -138,7 +145,7 @@ namespace ORMPolar
                                 //@"/media/data/My_Documents/Coding/_VSprojects/students/TestPlatform/bin/Release/"+
                                 "Index[" + Path.GetFileNameWithoutExtension(path) + "]-[" + field.Name + "].pxc");
                             }
-                            else
+                            else if (typeField == typeof(int))
                             {
                                 bTreeInd = new BTreeInd(bTreeType,
                                 intKeyComparer,
@@ -147,6 +154,8 @@ namespace ORMPolar
                                 //@"/media/data/My_Documents/Coding/_VSprojects/students/TestPlatform/bin/Release/" +
                                 "Index[" + Path.GetFileNameWithoutExtension(path) + "]-[" + field.Name + "].pxc");
                             }
+                            else
+                                throw new NotImplementedException();// TODO: реализовать для других типов
                             
                             _indexDictionary.Add(field.Name, bTreeInd);
 
@@ -176,10 +185,13 @@ namespace ORMPolar
             _cell.Clear();
             _cell.Fill(new object[0]);
         }
+
+        /// <summary>
+        /// Добавление сущности
+        /// </summary>
+        /// <param name="entity"></param>
         public void Append(TEntity entity)
         {
-            var fields = entity.GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-
             long offset = _cell.Root.AppendElement(
                 fields
                     .Select<FieldInfo, object>(fieldInfo => fieldInfo.GetValue(entity))
@@ -201,10 +213,14 @@ namespace ORMPolar
             return _cell;
         }
 
+        /// <summary>
+        /// метод преобразования object к типу Entity
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
         private TEntity Convert(object[] element)
         {
             TEntity entity = new TEntity();
-            var fields = entity.GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
 
             int t = 0;
             foreach (var rec in fields)
@@ -222,6 +238,12 @@ namespace ORMPolar
                 .Select<PaEntry, TEntity>(en => Convert((object[])en.Get()));
         }
 
+        /// <summary>
+        /// Метод поиска всех вхождений ключа
+        /// </summary>
+        /// <param name="fieldName">имя поля, по которому ведётся поиск</param>
+        /// <param name="key">искомый ключ</param>
+        /// <returns>набор сущностей</returns>
         public IEnumerable<TEntity> FindAll(string fieldName, object key)
         {
             IIndex index;
@@ -238,18 +260,22 @@ namespace ORMPolar
                 }
                 );
         }
+
+        /// <summary>
+        /// Метод поиска первого вхождения ключа
+        /// </summary>
+        /// <param name="fieldName">имя поля, по которому ведётся поиск</param>
+        /// <param name="key">искомый ключ</param>
+        /// <returns>найденная сущность</returns>
         public TEntity FindFirst(string fieldName, object key)
         {
             IIndex index;
             _indexDictionary.TryGetValue(fieldName, out index);
-
             PaEntry entry = _cell.Root.Element(0);
-
-
             entry.offset = index.FindFirst(key);
 
-            if (entry.offset < 0) return null;
-            
+            if (entry.offset < 0) 
+                return null;
             return Convert((object[])entry.Get());
         }
 

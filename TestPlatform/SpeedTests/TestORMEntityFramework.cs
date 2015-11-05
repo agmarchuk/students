@@ -20,23 +20,31 @@ namespace TestPlatform.SpeedTests
             Random rnd = new Random();
 
             uc = new UserContext();
-
-            for (int i = 0; i < N; ++i)
+            int portions = N / 1000;
+            int k = 0;
+            for (int i = 0; i < portions; ++i)
             {
-                Books.Book book = new Books.Book()
+                List<Books.Book> books=new List<Books.Book>();
+                for (int j = 0; j < 1000; ++j)
                 {
-                    id = i,
-                    title = "book" + i,
-                    pages = 1001,
-                    id_author = (rnd.Next(N) + rnd.Next(N)) % N
-                };
-                sw.Start();
-                uc.Books.Add(book);
-                sw.Stop();
-            }
-            uc.SaveChanges();
+                    Books.Book book = new Books.Book()
+                    {
+                        id = k,
+                        title = "book" + k,
+                        pages = 1001,
+                        id_author = (rnd.Next(N) + rnd.Next(N)) % N
+                    };
+                    books.Add(book);
+                    ++k;
+                }
 
-            sw.Stop();
+                sw.Start();
+                uc.Books.AddRange(books);
+                uc.SaveChanges();
+                sw.Stop();
+                //Console.WriteLine(i+") "+sw.ElapsedMilliseconds);
+            }
+
             return sw.ElapsedMilliseconds;
         }
 
@@ -53,7 +61,7 @@ namespace TestPlatform.SpeedTests
             Random rnd = new Random();
             for (int i = 0; i < repeats; ++i)
             {
-                int r = rnd.Next(1000000);
+                int r = rnd.Next(uc.Books.Count());
                 List<Books.Book> books;
                 if (fieldName == "title")
                 {
@@ -72,11 +80,6 @@ namespace TestPlatform.SpeedTests
             return sw.ElapsedMilliseconds;
         }
 
-        public long FindAll(string fieldName, object obj, out int count)
-        {
-            throw new NotImplementedException();
-        }
-
         public long FindFirst(int repeats, string fieldName)
         {
             sw.Reset();
@@ -84,34 +87,42 @@ namespace TestPlatform.SpeedTests
             Random rnd = new Random();
             for (int i = 0; i < repeats; ++i)
             {
-                int r = rnd.Next(1000);
+                int r = rnd.Next(uc.Books.Count());
                 Books.Book book;
                 if (fieldName == "title")
                 {
                     sw.Start();
-                    var buf = uc.Books.Where(b => b.title == "book" + r);
-
+                    try
+                    {
+                        book = uc.Books.First(b => b.title == "book" + r);
+                    }
+                    catch (Exception) 
+                    {
+                        //книга не найдена 
+                    } 
                     sw.Stop();
                 }
                 else
                 {
                     sw.Start();
-                    uc.Books.Where(b => b.id_author == r);
+                    try
+                    {
+                        book = uc.Books.First(b => b.id_author == r);
+                    }
+                    catch (Exception) 
+                    {
+                        //книга не найдена 
+                    } 
                     sw.Stop();
                 }
-
-                //if (book != null)
-                //    Console.WriteLine(book.title);
-                //else
-                //    Console.WriteLine("не найдена");
-                }
+            }
 
             return sw.ElapsedMilliseconds;
             }
 
-        public long FindFirst(string fieldName, object obj)
+        public long WarmUp()
         {
-            throw new NotImplementedException();
+            return 0L;
         }
     }
 }

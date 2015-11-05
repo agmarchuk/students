@@ -11,6 +11,9 @@ namespace ORMPolar
 {
     public class Program
     {
+        /// <summary>
+        /// отладочный тест
+        /// </summary>
         static void Testing()
         {
             string schemaPath = @"e:\my_documents\coding\_vsprojects\students\ormpolar\schema.xml";
@@ -72,12 +75,9 @@ namespace ORMPolar
         }
 
 
-
         static void Main(string[] args)
         {
             Testing();
-
-            
 
             Console.ReadKey();
         }

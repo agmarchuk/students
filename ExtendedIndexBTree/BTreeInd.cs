@@ -21,17 +21,15 @@ namespace ExtendedIndexBTree
         private PxCell index_cell;
         private string path;
 
-        public PxCell IndexCell { get { return index_cell; } set { index_cell = value; } }
+        public PxCell IndexCell { get { return index_cell; } }
 
-        //keyComparer используется при поиске ключа
-        private readonly Func<object, object, int> keyComparer;
-        //elementComparer используется при добавлении элементов
-        private readonly Func<object, object, int> elementComparer;
+        private readonly Func<object, object, int> keyComparer;//используется при поиске ключа
+        private readonly Func<object, object, int> elementComparer;//используется при добавлении элементов
 
-        public Func<object, object> KeyProducer { get; set; }
-        public Func<object, int> HalfProducer { get; set; }
+        public Func<object, object> keyProducer { get; set; }
+        public Func<object, int> halfProducer { get; set; }
 
-        private object[] EmptyNode;
+        private object[] emptyNode;
 
         private static PTypeUnion PStructTree(PType tpElement)
         {
@@ -51,17 +49,18 @@ namespace ExtendedIndexBTree
         /// <summary>
         /// Конструктор B-дерева
         /// </summary>
-        /// <param name="Degree">Степень дерева</param>
         /// <param name="ptElement">тип ключа</param>
-        /// <param name="compareKeys">компаратор</param>
+        /// <param name="keyComparer">компаратор</param>
+        /// <param name="elementComparer">компаратор</param>
         /// <param name="filePath">путь к файлу</param>
         /// <param name="readOnly">флаг чтения файла</param>
+        /// <param name="degree">Степень дерева</param>
         public BTreeInd(PType tpElement,
                         Func<object, object, int> keyComparer,
-                         Func<object, object, int> elementComparer,
-                        string filePath, bool
-                        readOnly = false,
-                        int degree = 100
+                        Func<object, object, int> elementComparer,
+                        string filePath, 
+                        bool readOnly = false,
+                        int degree = 125
                         ) : base(PStructTree(tpElement), filePath, readOnly)
         {
             this.keyComparer = keyComparer;
@@ -74,7 +73,7 @@ namespace ExtendedIndexBTree
                 childsEmpty[i] = new object[] { 0, null };
             }
 
-            EmptyNode = new object[]
+            emptyNode = new object[]
             {
                 1,
                 new object[]
@@ -97,7 +96,7 @@ namespace ExtendedIndexBTree
         /// <param name="node">узел</param>
         private void DiskAllocateNode(PxEntry node)
         {
-            node.Set(EmptyNode);
+            node.Set(emptyNode);
         }
 
         /// <summary>
@@ -416,10 +415,11 @@ namespace ExtendedIndexBTree
         }
 
         /// <summary>
-        /// Метод поиска ключа в дереве
+        /// Рекурсивный поиск ключа в дереве (не оптимальный)
         /// </summary>
         /// <param name="node">Узел, с которого начинается поиск</param>
         /// <param name="key">Ключ</param>
+        /// <param name="position">номер ключа в узле</param>
         /// <returns>узел дерева</returns>
         public PxEntry Search(PxEntry node, object element, out int position)
         {
@@ -432,22 +432,41 @@ namespace ExtendedIndexBTree
             {
                 int cmp = keyComparer(element, arrayKeys[i]);
 
-                if (cmp == 0) { position = i; return node; }
-                if (cmp < 0) { indexChild = i; break; }
+                if (cmp == 0) 
+                { 
+                    position = i; 
+                    return node; 
+                }
+                if (cmp < 0) 
+                { 
+                    indexChild = i; 
+                    break; 
+                }
             }
 
             bool isLeaf = (bool)node.UElement().Field(2).Get();
 
             var entry = Root;
-            if (isLeaf == true) { position = 0; return new PxEntry(entry.Typ, Int64.MinValue, entry.fis); }
+            if (isLeaf == true) 
+            { 
+                position = 0; 
+                return new PxEntry(entry.Typ, Int64.MinValue, entry.fis); 
+            }
 
             //продолжаем поиск ключа в дочернем узле 
             PxEntry child = node.UElement().Field(3).Element(indexChild);
             return Search(child, element, out position);
         }
 
-
-        public PxEntry Search(PxEntry node, object element, out int position, ref List<PxEntry> pathToNode)
+        /// <summary>
+        /// Метод поиска (используется при удалении)
+        /// </summary>
+        /// <param name="node">исходный узел</param>
+        /// <param name="element">искомый ключ</param>
+        /// <param name="position">номер ключа в узле</param>
+        /// <param name="pathToNode">путь до узла, в котором найден ключ</param>
+        /// <returns>узел дерева</returns>
+        private PxEntry Search(PxEntry node, object element, out int position, ref List<PxEntry> pathToNode)
         {
             //Делать из вне
             //if (pathToNode == null)
@@ -481,6 +500,10 @@ namespace ExtendedIndexBTree
             return Search(child, element, out position, ref pathToNode);
         }
 
+        /// <summary>
+        /// вывод дерева в файл (для отладки)
+        /// </summary>
+        /// <param name="path">путь до файла</param>
         public void WriteTreeInFile(string path)
         {
             StreamWriter swriter = File.CreateText(path);
@@ -495,6 +518,7 @@ namespace ExtendedIndexBTree
             }
         }
 
+        // TODO: дописать
         private void Delete(ref object key, int pos, ref PxEntry node)
         {
             //получаем массив ключей из узла
@@ -563,7 +587,7 @@ namespace ExtendedIndexBTree
                 bool isLeaf = (bool)currentNode.UElement().Field(2).Get();
                 int indexChild = numKeysInNode;
 
-                for (int i = 0; i < numKeysInNode; ++i)
+                for (int i = 0; i < numKeysInNode; ++i) // TODO: необходим рефакторинг
                 {
                     object[] pair = (object[])arrayKeys[i];
                     int cmp = keyComparer(key, arrayKeys[i]);
@@ -601,31 +625,38 @@ namespace ExtendedIndexBTree
             return offsets;
         }
 
+        /// <summary>
+        /// Метод поиска первого вхождения ключа
+        /// </summary>
+        /// <param name="key">искомый ключ</param>
+        /// <returns>offset записи из опорной таблицы</returns>
         public long FindFirst(object key)
         {
-            //int pos;
-            //PxEntry node = Search(Root, key, out pos);
-
-            //if (node.IsEmpty) return Int64.MinValue;
-
-            //object[] arrayKeys = (node.UElement().Field(1).Get() as object[]);
-            //object[] pair = (object[])arrayKeys[pos];
-            //long offset = (long)pair[0];
-
-            //return offset;
             return Search(Root, key);
         }
 
+        /// <summary>
+        /// Метод добавления элемента в дерево
+        /// </summary>
+        /// <param name="key">ключ</param>
         public void AppendElement(object key)
         {
             Add(key);
         }
 
+        /// <summary>
+        /// Метод удаления ключа из дерева
+        /// </summary>
+        /// <param name="key">ключ</param>
         public void DeleteElement(object key)
         {
-            DeleteKey(ref key);
+            throw new NotImplementedException();
+            //DeleteKey(ref key);
         }
 
+        /// <summary>
+        /// Освобождение ячейки
+        /// </summary>
         public void Dispose()
         {
             index_cell.Close();

@@ -153,7 +153,7 @@ namespace PolarProblems
 
 
              /*            
-                //Далее происходит инициализация В-дерева и заполнение его индексами (офсетами на записи в опорной таблице)
+                //Далее происходит инициализация Вin-дерева
                 Func<object, object, int> compare_name = (object ob1, object ob2) =>
                 {
                     return String.Compare(ob1.ToString(), ob2.ToString(), StringComparison.Ordinal);//вернётся: -1,0,1
@@ -336,7 +336,7 @@ namespace PolarProblems
         }
 
         /// <summary>
-        /// Отображает грфик в EXEL, но не сохраняет его. 
+        /// Отображает грфик в EXCEL, но не сохраняет его. 
         /// </summary>
         /// <param name="xy">корневой массив-линий, листовой точек. Точки должны отличться на одну постоянноую величину</param>
         //public void Draw(int[][] xy)

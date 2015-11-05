@@ -8,7 +8,6 @@ namespace ORMPolar
 {
     public class UserContext: DbContext
     {
-        //TODO: Реализация синглтона на совести разработчика
         public UserContext(string schemaPath)
             : base(schemaPath)
         {

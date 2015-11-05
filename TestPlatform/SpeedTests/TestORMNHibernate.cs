@@ -21,18 +21,20 @@ namespace TestPlatform.SpeedTests
 
         private ISession OpenSession()
         {
-            var configuration = new Configuration().Configure("hibernate.cfg.xml");
+            var configuration = new Configuration().Configure("Mappings/hibernate.cfg.xml");
             configuration.AddAssembly(typeof(BookLibrary).Assembly);
             ISessionFactory sessionFactory = configuration.BuildSessionFactory();
-
-            //Позволяет Nhibernate самому создавать в БД таблицу и поля к ним. 
             new SchemaUpdate(configuration).Execute(true, true);
             return sessionFactory.OpenSession();
         }
 
         public TestORMNHibernate()
         {
-            session = OpenSession();
+            try
+            {
+                session = OpenSession();
+            }
+            catch (Exception ex) { Console.WriteLine("Ошибка: " + ex.Message); }
         }
 
         public long CreateDB(int N)
@@ -115,6 +117,11 @@ namespace TestPlatform.SpeedTests
                 sw.Stop();
             }
             return sw.ElapsedMilliseconds;
+        }
+
+        public long WarmUp()
+        {
+            return 0L;
         }
     }
 }

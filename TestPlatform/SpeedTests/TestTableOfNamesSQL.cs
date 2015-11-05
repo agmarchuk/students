@@ -62,9 +62,9 @@ namespace TestPlatform.SpeedTests
         public static void Main2(string[] args)
         {
 
-            SQLite sqlite = null;
+            //SQLite sqlite = null;
             MySQL  mysql  = null;
-            MSSQL mssql = null;
+            //MSSQL mssql = null;
             TextWriter standardOutput = Console.Out;
             StreamWriter outf = null;
 

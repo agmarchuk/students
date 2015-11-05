@@ -1,20 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <configuration>
-  <class name='Author' path='../../../Databases/authors.pac' />
-  <class name='Book' path='../../../Databases/books.pac'/>
-  <!--<record type='author' path='\..\..\Databases\author.pac'>
-    <field property='id' datatype='int' />
-    <field property='name' datatype='string' />
-  </record>
-  <record type='book' path='\..\..\Databases\book.pac'>
-    <field property='id' datatype='int' />
-    <field property='title' datatype='string' />
-    <field property='pages' datatype='int' />
-    <field property='foreign_key_author' datatype='int' />
-  </record>-->
-  <!--<record type='reflection'>
-    <direct prop='reflected'><record type='author' /> </direct>
-    <direct prop='in_book'><record type='book' /> </direct>
-  </record>-->
+  <class name='Author' path='../../../../Databases/authors.pac' />
+  <class name='Book' path='../../../../Databases/books.pac'/>
 </configuration>
 

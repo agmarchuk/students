@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace PolarProblems.Properties {
+namespace TestPlatform.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]

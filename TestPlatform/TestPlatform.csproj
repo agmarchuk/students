@@ -8,7 +8,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>TestPlatform</RootNamespace>
     <AssemblyName>TestPlatform</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
@@ -102,17 +102,23 @@
   <ItemGroup>
     <Compile Include="BookLibrary.cs" />
     <Compile Include="LaunchingTest.cs" />
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
     <Compile Include="SpeedTests\TestORMNHibernate.cs" />
     <Compile Include="SpeedTests\IPerformanceTest.cs" />
     <Compile Include="SpeedTests\TestORMEntityFramework.cs" />
     <Compile Include="SpeedTests\TestORMInRAM.cs" />
+    <Compile Include="SpeedTests\TestPolarDB.cs" />
     <Compile Include="SpeedTests\TestTableOfNamesBTreePolar.cs" />
     <Compile Include="SpeedTests\TestTableOfNamesBinTreePolar.cs" />
     <Compile Include="SpeedTests\TestTableOfNamesSQL.cs" />
     <Compile Include="SpeedTests\TestORMPolarDB.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UnitTests\TestBtree.cs" />
-    <Compile Include="UnitTests\TestORM.cs" />
+    <Compile Include="UnitTests\UnitTestBtree.cs" />
+    <Compile Include="UnitTests\UnitTestORMPolar.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ExtendedIndexBTree\ExtendedIndexBTree.csproj">
@@ -122,10 +128,6 @@
     <ProjectReference Include="..\ORMEntityFramework\ORMEntityFramework.csproj">
       <Project>{bc68de0c-9310-498f-84fc-528bb7e0a4ce}</Project>
       <Name>ORMEntityFramework</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ORMNHibernate\ORMNHibernate.csproj">
-      <Project>{3847727b-fe04-4be3-b2ec-8443ada660b1}</Project>
-      <Name>ORMNHibernate</Name>
     </ProjectReference>
     <ProjectReference Include="..\ORMPolar\ORMPolar.csproj">
       <Project>{da63279c-44cc-4d69-9b90-f653e8e33be6}</Project>
@@ -147,13 +149,21 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Mappings\ORMNHibernate.hbm.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="Mappings\hibernate.cfg.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>

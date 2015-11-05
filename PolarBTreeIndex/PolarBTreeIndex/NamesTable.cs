@@ -7,6 +7,9 @@ using PolarDB;
 
 namespace PolarBtreeIndex
 {
+    /// <summary>
+    /// Таблица имен
+    /// </summary>
     public class NamesTable
     {
         private string path;
@@ -20,6 +23,7 @@ namespace PolarBtreeIndex
             return String.Compare(ob1.ToString(), ob2.ToString(), StringComparison.Ordinal);//вернётся: -1,0,1
         };
 
+        #region Comparers
         //Компаратор для сравнения узлов дерева
         private Func<object, object, int> elementComparer = (object ob1, object ob2) =>
         {
@@ -75,6 +79,7 @@ namespace PolarBtreeIndex
                 return ((hash1 > hash2) ? -1 : 1);
 
         };
+        #endregion
 
         public NamesTable(string path)
         {

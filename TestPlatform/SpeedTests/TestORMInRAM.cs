@@ -7,7 +7,7 @@ using ORMPolar;
 
 namespace TestPlatform.SpeedTests
 {
-    class TestORMInRAM:IPerformanceTest
+    class TestDBInRAM:IPerformanceTest
     {
         private List<Book> books;
         private Dictionary<string, Book> index_title;
@@ -55,7 +55,7 @@ namespace TestPlatform.SpeedTests
 
         public void DeleteDB()
         {
-            throw new NotImplementedException();
+            System.GC.Collect();
         }
 
         public long FindFirst(int repeats, string fieldName)
@@ -63,9 +63,11 @@ namespace TestPlatform.SpeedTests
             sw.Reset();
 
             Random rnd = new Random();
-            for (int i = 0; i < repeats; ++i)
+            int N = books.Count();
+
+            for (int i = 0; i < (repeats * repeats); ++i)
             {
-                int r = rnd.Next(100000000);
+                int r = (rnd.Next(N) + rnd.Next(N)) % N;
                 Book book;
                 List<Book> books;
                 if (fieldName == "title")
@@ -82,7 +84,6 @@ namespace TestPlatform.SpeedTests
                     sw.Stop();
                 }
 
-
                 //if (book != null)
                 //    Console.WriteLine(book.title);
                 //else
@@ -96,11 +97,11 @@ namespace TestPlatform.SpeedTests
         {
             sw.Reset();
             //count = 0;
-
+            int N = books.Count();
             Random rnd = new Random();
-            for (int i = 0; i < repeats; ++i)
+            for (int i = 0; i < (repeats * repeats); ++i)
             {
-                int r = rnd.Next(100000000);
+                int r = (rnd.Next(N) + rnd.Next(N)) % N;
                 Book book;
                 List<Book> books;
                 if (fieldName == "title")
@@ -125,14 +126,16 @@ namespace TestPlatform.SpeedTests
             return sw.ElapsedMilliseconds;
         }
 
-        public long FindAll(string fieldName, object obj, out int count)
+        public long WarmUp()
         {
-            throw new NotImplementedException();
-        }
-
-        public long FindFirst(string fieldName, object obj)
-        {
-            throw new NotImplementedException();
+            sw.Reset();
+            int N = books.Count();
+            sw.Start();
+                foreach (var book in books) { }
+                foreach (var index in index_id_author.Values) { }
+                foreach (var index in index_title.Values) { }
+            sw.Stop();
+            return sw.ElapsedMilliseconds;
         }
     }
 }

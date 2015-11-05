@@ -19,7 +19,6 @@ namespace TestPlatform.SpeedTests
         public long CreateDB(int N)
         {
             sw.Reset();
-            
 
             uc = new UserContext(schemaPath);
             uc.Books.Clear();
@@ -44,43 +43,15 @@ namespace TestPlatform.SpeedTests
             return sw.ElapsedMilliseconds;
         }
 
-        public long FindAll(string fieldName, object obj, out int count)
-        {
-            sw.Reset();
-            sw.Start();
-
-            List<Book> books = uc.Books.FindAll(fieldName, obj).ToList<Book>();
-
-            sw.Stop();
-            count = books.Count();
-            //Console.WriteLine(count);
-            return sw.ElapsedMilliseconds;
-        }
-
-        public long FindFirst(string fieldName,object obj)
-        {
-            sw.Reset();
-            sw.Start();
-
-            Book book = uc.Books.FindFirst(fieldName, obj);
-
-            sw.Stop();
-            //if (book != null)
-            //    Console.WriteLine(book.title);
-            //else
-            //    Console.WriteLine("не найдена");
-
-            return sw.ElapsedMilliseconds;
-        }
-
         public long FindFirst(int repeats, string fieldName)
         {
             sw.Reset();
-
             Random rnd = new Random();
+            int N = uc.Books.Elements().Count();
+
             for (int i = 0; i < repeats; ++i)
             {
-                int r = rnd.Next(1000000);
+                int r = rnd.Next(N);
                 Book book;
                 if (fieldName == "title")
                 {
@@ -104,15 +75,17 @@ namespace TestPlatform.SpeedTests
 
             return sw.ElapsedMilliseconds;
         }
+
         public long FindAll(int repeats, string fieldName)
         {
             sw.Reset();
-            //count = 0;
 
             Random rnd = new Random();
+            int N = uc.Books.Elements().Count();
+
             for (int i = 0; i < repeats; ++i)
             {
-                int r = rnd.Next(1000000);
+                int r = rnd.Next(N);
                 List<Book> books;
                 if (fieldName == "title")
                 {
@@ -126,8 +99,6 @@ namespace TestPlatform.SpeedTests
                     books = uc.Books.FindAll(fieldName, (object)r).ToList<Book>();
                     sw.Stop();
                 }
-                //count = books.Count();
-                //Console.WriteLine(count);
             }
             
             return sw.ElapsedMilliseconds;
@@ -159,6 +130,26 @@ namespace TestPlatform.SpeedTests
 
             if (File.Exists("../../../Databases" + "/BTreeIndex.pxc"))
                 File.Delete("../../../Databases" + "/BTreeIndex.pxc");
+        }
+
+        public long WarmUp()
+        {
+            sw.Reset();
+            Random rnd = new Random();
+            int N = uc.Books.Elements().Count();
+            List<Book> books;
+
+            foreach (var book in uc.Books.Elements()) { }
+
+            for (int i = 0; i < 1000; ++i)
+            {
+                int r = (rnd.Next(N) + rnd.Next(N)) % N;
+                sw.Start();
+                    books = uc.Books.FindAll("id_author", (object)r).ToList<Book>();
+                    books = uc.Books.FindAll("title", (object)("book" + r)).ToList<Book>();
+                sw.Stop();
+            }
+            return sw.ElapsedMilliseconds;
         }
     }
 }

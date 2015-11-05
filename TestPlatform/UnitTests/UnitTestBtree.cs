@@ -8,11 +8,12 @@ using PolarDB;
 using ExtendedIndexBTree;
 using System.IO;
 
-namespace TestPlatform.UnitTests
+namespace TestPlatform
 {
     [TestClass]
-    public class TestBtree
+    public class UnitTestBtree
     {
+        #region Comparers
         private Func<object, object, int> keyComparer = (object ob1, object ob2) =>
         {
             if ((int)ob1 < (int)ob2) return -1;
@@ -44,6 +45,7 @@ namespace TestPlatform.UnitTests
 
             return ((value1 < value2) ? -1 : 1);
         };
+        #endregion
 
         private const string path = @"../../../Databases/";
 
