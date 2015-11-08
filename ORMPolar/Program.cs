@@ -11,13 +11,14 @@ namespace ORMPolar
 {
     public class Program
     {
+        static string schemaPath = @"e:\my_documents\coding\_vsprojects\students\ormpolar\schema.xml";
+
         /// <summary>
         /// отладочный тест
         /// </summary>
         static void Testing()
         {
-            string schemaPath = @"e:\my_documents\coding\_vsprojects\students\ormpolar\schema.xml";
-
+            
             using (UserContext uc = new UserContext(schemaPath))
             {
                 uc.Books.Clear();
@@ -71,13 +72,91 @@ namespace ORMPolar
                 //    File.Delete(filePath + "/Index[books]-[title].pxc");
             }        
 
-
         }
 
+        static void TestRelationOneToMany()
+        {
+            using (UserContext uc = new UserContext(schemaPath))
+            {
+                uc.Authors.Clear();
+                uc.Books.Clear();
+
+                Book book = new Book()
+                {
+                    id = 1,
+                    title = "Евгений Онегин",
+                    pages = 524,
+                    id_author = 1
+                };
+
+                uc.Books.Append(book);
+                book = new Book()
+                {
+                    id = 2,
+                    title = "Руслан и Людмила",
+                    pages = 100,
+                    id_author = 1
+                };
+
+                uc.Books.Append(book);
+
+                book = new Book()
+                {
+                    id = 3,
+                    title = "Война и мир",
+                    pages = 10000,
+                    id_author = 2
+                };
+
+                uc.Books.Append(book);
+
+                uc.Books.Flush();
+
+                Author author = new Author()
+                {
+                    id = 1,
+                    name = "Пушкин"
+                };
+                uc.Authors.Append(author);
+                uc.Authors.Flush();
+
+                Author a = uc.Authors.FindFirst("name", "Пушкин");
+
+                DbSet<Book> authorBooks = a.books;
+
+                foreach(Book b in authorBooks.Elements())
+                {
+                    Console.WriteLine("{0} {1} {2}",b.id, b.pages, b.title);
+                }
+            }
+
+            XDocument schema = XDocument.Load(schemaPath);
+
+            foreach (XElement element in schema.Root.Elements()
+                    .Where(el => el.Name == "class"))
+            {
+                string filePath = element.Attribute("path").Value;
+                if (File.Exists(filePath))
+                    File.Delete(filePath);
+            }
+
+            if (File.Exists("Index[books]-[title].pxc"))
+                File.Delete("Index[books]-[title].pxc");
+            if (File.Exists("Index[books]-[id_author].pxc"))
+                File.Delete("Index[books]-[id_author].pxc");
+
+            if (File.Exists("../../../Databases" + "/Index[books]-[title].pxc"))
+                File.Delete("../../../Databases" + "/Index[books]-[title].pxc");
+            if (File.Exists("../../../Databases" + "/Index[books]-[id_author].pxc"))
+                File.Delete("../../../Databases" + "/Index[books]-[id_author].pxc");
+
+            if (File.Exists("../../../Databases" + "/BTreeIndex.pxc"))
+                File.Delete("../../../Databases" + "/BTreeIndex.pxc");
+        }
 
         static void Main(string[] args)
         {
-            Testing();
+            TestRelationOneToMany();
 
             Console.ReadKey();
         }

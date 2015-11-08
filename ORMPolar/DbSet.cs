@@ -9,6 +9,8 @@ using System.Reflection;
 using ExtendedIndexBTree;
 using System.Xml.Linq;
 using System.IO;
+using System.ComponentModel;
+using System.Reflection.Emit;
 
 namespace ORMPolar
 {
@@ -276,6 +278,7 @@ namespace ORMPolar
 
             if (entry.offset < 0) 
                 return null;
+
             return Convert((object[])entry.Get());
         }
 
