@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ORMEntityFramework
 {
@@ -13,14 +8,14 @@ namespace ORMEntityFramework
         public class Book
         {
             [Key]
-            [Column(Order = 1)]
+            //[Column(Order = 1)]
             public int id { get; set; }
 
-            [Key]
-            [Column(Order = 2)]
+            //[Key]
+            //[Column(Order = 2)]
             public string title { get; set; }
             public int pages { get; set; }
-            [Index]
+            //[Index]
             public int id_author { get; set; }
         }
 

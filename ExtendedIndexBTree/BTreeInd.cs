@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using PolarDB;
 using System.Diagnostics.Contracts;
 using System.IO;
+using Common;
 
 namespace ExtendedIndexBTree
 {
@@ -18,10 +19,10 @@ namespace ExtendedIndexBTree
         /// </summary>
         public int bDegree;
 
-        private PxCell index_cell;
+        private PCell index_cell;
         private string path;
 
-        public PxCell IndexCell { get { return index_cell; } }
+        public PCell IndexCell { get { return index_cell; } }
 
         private readonly Func<object, object, int> keyComparer;//используется при поиске ключа
         private readonly Func<object, object, int> elementComparer;//используется при добавлении элементов

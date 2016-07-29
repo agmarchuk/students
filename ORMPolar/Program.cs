@@ -11,7 +11,7 @@ namespace ORMPolar
 {
     public class Program
     {
-        static string schemaPath = @"e:\my_documents\coding\_vsprojects\students\ormpolar\schema.xml";
+        static string schemaPath = AppDomain.CurrentDomain.BaseDirectory + @"..\..\schema.xml";
 
         /// <summary>
         /// отладочный тест
@@ -26,18 +26,18 @@ namespace ORMPolar
                 Book book = new Book()
                 {
                     //id = 1,
-                    title = "Война и мир",
+                    Title = "Война и мир",
                     //pages = 1001,
-                    id_author = 1
+                    Id_author = 1
                 };
 
                 uc.Books.Append(book);
                 book = new Book()
                 {
                     //id = 2,
-                    title = "Мастер йода и зеленки",
+                    Title = "Мастер йода и зеленки",
                     //pages = 10000,
-                    id_author = 2
+                    Id_author = 2
                 };
 
                 uc.Books.Append(book);
@@ -83,29 +83,29 @@ namespace ORMPolar
 
                 Book book = new Book()
                 {
-                    id = 1,
-                    title = "Евгений Онегин",
-                    pages = 524,
-                    id_author = 1
+                    Id = 1,
+                    Title = "Евгений Онегин",
+                    Pages = 524,
+                    Id_author = 1
                 };
 
                 uc.Books.Append(book);
                 book = new Book()
                 {
-                    id = 2,
-                    title = "Руслан и Людмила",
-                    pages = 100,
-                    id_author = 1
+                    Id = 2,
+                    Title = "Руслан и Людмила",
+                    Pages = 100,
+                    Id_author = 1
                 };
 
                 uc.Books.Append(book);
 
                 book = new Book()
                 {
-                    id = 3,
-                    title = "Война и мир",
-                    pages = 10000,
-                    id_author = 2
+                    Id = 3,
+                    Title = "Война и мир",
+                    Pages = 10000,
+                    Id_author = 2
                 };
 
                 uc.Books.Append(book);
@@ -114,20 +114,20 @@ namespace ORMPolar
 
                 Author author = new Author()
                 {
-                    id = 1,
-                    name = "Пушкин"
+                    Id = 1,
+                    Name = "Пушкин"
                 };
                 uc.Authors.Append(author);
                 uc.Authors.Flush();
 
-                Author a = uc.Authors.FindFirst("name", "Пушкин");
+                Author a = uc.Authors.FindFirst("Name", "Пушкин");
 
-                DbSet<Book> authorBooks = a.books;
+                //DbSet<Book> authorBooks = a.books;
 
-                foreach(Book b in authorBooks.Elements())
-                {
-                    Console.WriteLine("{0} {1} {2}",b.id, b.pages, b.title);
-                }
+                //foreach(Book b in authorBooks.Elements())
+                //{
+                //    Console.WriteLine("{0} {1} {2}",b.Id, b.Pages, b.Title);
+                //}
             }
 
             XDocument schema = XDocument.Load(schemaPath);
@@ -140,15 +140,15 @@ namespace ORMPolar
                     File.Delete(filePath);
             }
 
-            if (File.Exists("Index[books]-[title].pxc"))
-                File.Delete("Index[books]-[title].pxc");
-            if (File.Exists("Index[books]-[id_author].pxc"))
-                File.Delete("Index[books]-[id_author].pxc");
+            if (File.Exists("Index[books]-[Title].pxc"))
+                File.Delete("Index[books]-[Title].pxc");
+            if (File.Exists("Index[books]-[Id_author].pxc"))
+                File.Delete("Index[books]-[Id_author].pxc");
 
-            if (File.Exists("../../../Databases" + "/Index[books]-[title].pxc"))
-                File.Delete("../../../Databases" + "/Index[books]-[title].pxc");
-            if (File.Exists("../../../Databases" + "/Index[books]-[id_author].pxc"))
-                File.Delete("../../../Databases" + "/Index[books]-[id_author].pxc");
+            if (File.Exists("../../../Databases" + "/Index[books]-[Title].pxc"))
+                File.Delete("../../../Databases" + "/Index[books]-[Title].pxc");
+            if (File.Exists("../../../Databases" + "/Index[books]-[Id_author].pxc"))
+                File.Delete("../../../Databases" + "/Index[books]-[Id_author].pxc");
 
             if (File.Exists("../../../Databases" + "/BTreeIndex.pxc"))
                 File.Delete("../../../Databases" + "/BTreeIndex.pxc");
@@ -157,7 +157,7 @@ namespace ORMPolar
         static void Main(string[] args)
         {
             TestRelationOneToMany();
-
+            
             Console.ReadKey();
         }
     }

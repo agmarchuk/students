@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+  <class name='Customer' path='../../../Databases/Customers.pac' />
+  <class name='Order' path='../../../Databases/Orders.pac'/>
+  <class name='OrderItem' path='../../../Databases/OrderItems.pac'/>
+  <class name='Product' path='../../../Databases/Products.pac'/>
+</configuration>
+

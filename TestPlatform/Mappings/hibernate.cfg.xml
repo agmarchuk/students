@@ -7,10 +7,8 @@
     <property name="connection.driver_class">
       NHibernate.Driver.SqlClientDriver
     </property>
-    <property name="connection.connection_string">
-      Server=(LocalDB)\ProjectsV12; Initial Catalog=BookStore;Integrated Security=True;Connect Timeout=3
-      <!--Data Source=(localdb)\ProjectsV12;AttachDbFilename=E:\My_Documents\Coding\_VSprojects\students\Databases\BookStore.mdf;Integrated Security=True;Connect Timeout=30-->
-      <!--data source=MAKC-NB\SQLEXPRESS;Initial Catalog=BookStore;Integrated Security=False;User ID=sa;Password=123;Connect Timeout=10;-->
+    <property name="connection.connection_string">    
+      Data Source=(localdb)\Projects;Initial Catalog=NorthWind;Integrated Security=True;Connect Timeout=3;Encrypt=False;TrustServerCertificate=False
     </property>
     <property name="dialect">
       NHibernate.Dialect.MsSql2012Dialect

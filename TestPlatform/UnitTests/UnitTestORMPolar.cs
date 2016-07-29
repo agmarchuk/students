@@ -16,7 +16,7 @@ namespace TestPlatform.UnitTests
         [TestMethod]
         public void TestAppendElement()
         {
-            string schemaPath = @"e:\my_documents\coding\_vsprojects\students\ormpolar\schema.xml";
+            string schemaPath = "";//@"e:\my_documents\coding\_vsprojects\students\ormpolar\schema.xml";
 
             using (UserContext uc = new UserContext(schemaPath))
             {
@@ -24,10 +24,10 @@ namespace TestPlatform.UnitTests
 
                 Book book = new Book()
                 {
-                    id = 1,
-                    title = "Война и мир",
-                    pages = 1001,
-                    id_author = 1
+                    Id = 1,
+                    Title = "Война и мир",
+                    Pages = 1001,
+                    Id_author = 1
                 };
 
                 uc.Books.Append(book);
@@ -35,12 +35,12 @@ namespace TestPlatform.UnitTests
 
                 var actual = uc.Books.Elements().First();
 
-                Assert.AreEqual(book.id, actual.id);
-                Assert.AreEqual(book.id_author, actual.id_author);
-                Assert.AreEqual(book.pages, actual.pages);
-                Assert.AreEqual(book.title, actual.title);
+                Assert.AreEqual(book.Id, actual.Id);
+                Assert.AreEqual(book.Id_author, actual.Id_author);
+                Assert.AreEqual(book.Pages, actual.Pages);
+                Assert.AreEqual(book.Title, actual.Title);
             }
-            
+
             XDocument schema = XDocument.Load(schemaPath);
 
             foreach (XElement element in schema.Root.Elements()
@@ -49,7 +49,45 @@ namespace TestPlatform.UnitTests
                 string filePath = element.Attribute("path").Value;
                 if (File.Exists(filePath))
                     File.Delete(filePath);
-            }        
+            }
+
+        }
+
+        [TestMethod]
+        public void TestDeleteElement()
+        {
+            string schemaPath = "";//@"e:\my_documents\coding\_vsprojects\students\ormpolar\schema.xml";
+
+            using (UserContext uc = new UserContext(schemaPath))
+            {
+                uc.Books.Clear();
+
+                Book book = new Book()
+                {
+                    Id = 1,
+                    Title = "Война и мир",
+                    Pages = 1001,
+                    Id_author = 1
+                };
+
+                uc.Books.Append(book);
+                uc.Books.Flush();
+                uc.Books.Delete(ref book);
+
+                var actual = uc.Books.Elements().First();
+
+                Assert.AreEqual(actual, null);
+            }
+
+            XDocument schema = XDocument.Load(schemaPath);
+
+            foreach (XElement element in schema.Root.Elements()
+                    .Where(el => el.Name == "class"))
+            {
+                string filePath = element.Attribute("path").Value;
+                if (File.Exists(filePath))
+                    File.Delete(filePath);
+            }
 
         }
     }

@@ -14,52 +14,47 @@ namespace TestPlatform
         private static TextWriter standardOutput = Console.Out;
         private static StreamWriter outf = null;
         private static string fileResult = null;
-        private const string resultsPath = @"..\..\..\..\..\students\TestPlatform\ResultTests\";
+        private const string resultsPath = @"..\..\..\..\students\TestPlatform\ResultTests\";
 
         public static void RunTest(IPerformanceTest test, string name)
         {
-            int N = 10;
+            //int N = 1000000;
             try
             {
+                test.Init();
                 Console.WriteLine("Тестирование {0}", name);
-                Console.WriteLine("Создание БД c {1} записями. Время = {0}мс", test.CreateDB(N), N);
-
-                Console.WriteLine("Разогрев. Время = {0}мс", test.WarmUp());
-
-                Console.WriteLine("Поиск первого строкового ключа. Время = {0}мс", test.FindFirst(1, "title"));
-                Console.WriteLine("Поиск первого целого ключа. Время = {0}мс", test.FindFirst(1, "id_author"));
-
-                Console.WriteLine("Поиск всех целых ключей. Время = {0}мс", test.FindAll(1, "id_author"));
-                Console.WriteLine("Поиск всех строковых ключей. Время = {0}мс", test.FindAll(1, "title"));
-
-                int repeats = 1000;
-                Console.WriteLine("Поиск первого строкового ключа {0} раз. Время = {1}мс", repeats, test.FindFirst(repeats, "title"));
-                Console.WriteLine("Поиск первого целого ключа {0} раз. Время = {1}мс", repeats, test.FindFirst(repeats, "id_author"));
-                Console.WriteLine("Поиск всех целых ключей {0} раз. Время = {1}мс", repeats, test.FindAll(repeats, "id_author"));
-                Console.WriteLine("Поиск всех строковых ключей {0} раз. Время = {1}мс", repeats, test.FindAll(repeats, "title"));
-
-                test.DeleteDB();
+                int step = 100;
+                for (int i = 1; i <= 1; ++i)
+                {
+                    Console.WriteLine("{1} раз добавляем в БД {2} записей. Время шага = {0}мс", test.Add(step), i, step);
+                    //int repeats = 1000;
+                    //Console.WriteLine("Поиск первого строкового ключа {0} раз. Время = {1}мс", repeats, test.FindString(repeats));
+                    //Console.WriteLine("Поиск первого целого ключа {0} раз. Время = {1}мс", repeats, test.FindInt(repeats));
+                    
+                }
             }
             catch (Exception ex) { standardOutput.WriteLine("Ошибка: " + ex); }
+            finally { test.DeleteDB(); }
         }
 
         public static void Main(string[] arg)
         {
-            var polarDB = new TestPolarDB();
-            var ORMpolarDB = new TestORMPolarDB();
-            var DBInRAM = new TestDBInRAM();
-            var ORMEntityFramework = new TestORMEntityFramework();
+            //var polarDB = new TestPolarDB();
+            //var ORMpolarDB = new TestORMPolarDB();
+            //var ORMEntityFramework = new TestORMEntityFramework();
             var ORMNHibernate = new TestORMNHibernate();
 
             ArrayList tests = new ArrayList();
-            tests.Add(polarDB);
-            tests.Add(ORMpolarDB);
-            tests.Add(DBInRAM);
+            //tests.Add(polarDB);
+            //tests.Add(ORMpolarDB);
             tests.Add(ORMNHibernate);//Требует существование БД BookStore на сервере и 
-                                     //очистку после теста от созданных таблиц
-            tests.Add(ORMEntityFramework);//DBConnection берет из параметров проекта
+            //очистку после теста от созданных таблиц
+            //tests.Add(ORMEntityFramework);//DBConnection берет из параметров проекта
 
-            string time = String.Format("{0}_{1}-{2}", DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute);
+            //tests.Add(HashTableIndexPolarDB);
+            //tests.Add(exHashTableIndexPolarDB);
+
+            string time = String.Format("{0}_{1}-{2} {3}", DateTime.Now.Day, DateTime.Now.Month, DateTime.Now.Hour, DateTime.Now.Minute);
             fileResult = resultsPath + "ResultTests_"+time+".txt";
 
             try

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ORMPolar
 {
-    class IndexAttribute: System.Attribute
+    public class IndexAttribute: System.Attribute
     {
         public string Name { get; set; }
 
@@ -18,30 +18,38 @@ namespace ORMPolar
         }
     }
 
-    class RelationAttribute : System.Attribute
+    public class RelationAttribute : System.Attribute
     {
-        public string sourceField { get; set; }
-        public string targetField { get; set; }
+        public string source { get; set; }
+        public string target { get; set; }
+        public string foreighnField { get; set; }
 
-        public RelationAttribute(string source, string target)
+        public RelationAttribute(string source, string target, string foreighnField)
         {
-            this.sourceField = source;
-            this.targetField = target;
+            this.source = source;
+            this.target = target;
+            this.foreighnField = foreighnField;
+        }
+
+        public RelationAttribute(string target, string foreighnField)
+        {
+            this.target = target;
+            this.foreighnField = foreighnField;
         }
     }
 
-    class OneToManyAttribute : RelationAttribute
+    public class OneToManyAttribute : RelationAttribute
     {
-        public OneToManyAttribute(string source, string target) : base(source, target) { }
+        public OneToManyAttribute(string target, string foreighnField) : base(target, foreighnField) { }
     }
 
-    class ManyToManyAttribute : RelationAttribute
+    public class ManyToOneAttribute : RelationAttribute
     {
-        public ManyToManyAttribute(string source, string target) : base(source, target) { }
+        public ManyToOneAttribute(string target, string foreighnField) : base(target, foreighnField) { }
     }
 
-    class OneToOneAttribute : RelationAttribute
+    public class OneToOneAttribute : RelationAttribute
     {
-        public OneToOneAttribute(string source, string target) : base(source, target) { }
+        public OneToOneAttribute(string source, string target, string foreighnField) : base(source, target, foreighnField) { }
     }
 }

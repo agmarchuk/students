@@ -3,13 +3,45 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ORMEntityFramework;
+//using ORMEntityFramework;
 using System.Data.Entity;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TestPlatform.SpeedTests
 {
-    public class TestORMEntityFramework : IPerformanceTest
+    public class TestORMEntityFramework //: IPerformanceTest
     {
+        public class Books
+        {
+            public class Book
+            {
+                [Key]
+                [Column(Order = 1)]
+                public int id { get; set; }
+
+                [Key]
+                [Column(Order = 2)]
+                public string title { get; set; }
+                public int pages { get; set; }
+                [Index]
+                public int id_author { get; set; }
+            }
+
+            public class Author
+            {
+                public int id { get; set; }
+                public string name { get; set; }
+            }
+        }
+
+        public class UserContext : DbContext
+        {
+            public UserContext() : base("DefaultConnection") { } //Properties.Settings.Default.DbConnection
+
+            public DbSet<Books.Book> Books { get; set; }
+        }
+
         System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
 
         UserContext uc;
@@ -108,6 +140,7 @@ namespace TestPlatform.SpeedTests
                     try
                     {
                         book = uc.Books.First(b => b.id_author == r);
+                        
                     }
                     catch (Exception) 
                     {

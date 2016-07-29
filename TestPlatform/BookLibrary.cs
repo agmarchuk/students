@@ -12,6 +12,7 @@ namespace TestPlatform
         public class Book
         {
             public virtual int id { get; set; }
+            public virtual int Authorid { get; set; }//todo
             public virtual string title { get; set; }
             public virtual int pages { get; set; }
         }

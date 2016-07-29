@@ -1,31 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace ORMPolar
 {
-    public class Book
+   
+
+    public class Book: Entity
     {
-        public int id;
         [Index("BTree")]
-        public string title;
-        public int pages;
+        public string Title { get; set; }
 
         [Index("BTree")]
-        [ForeignKey("Author")]
-        public int id_author { get; set; }
+        //[ForeignKey("Author")]
+        public int Id_author { get; set; }
+        public int Id { get; set; }
+        public int Pages { get; set; }
     }
 
-    public class Author
+    public class Author: Entity
     {
-        public int id;
-        public string name;
+        public int Id { get; set; }
+        public string Name { get; set; }
 
-        [OneToMany("AuthorId", "idAuthor")]
-        public DbSet<Book> books { get;}
-        //{ {get books.Where<TEntity>.idAuthor = AuthorId}; set; }
+        //[OneToMany("AuthorId", "idAuthor")]
+        //public DbSet<Book> books { get;}
     }
 }

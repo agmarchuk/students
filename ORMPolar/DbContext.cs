@@ -19,6 +19,7 @@ namespace ORMPolar
 
         public static Dictionary<Type, PaCell> sTables = new Dictionary<Type, PaCell>();
         public static Dictionary<Type, string> sTablePaths = new Dictionary<Type, string> ();
+        public static Dictionary<string, IDbSet> dbSets = new Dictionary<string, IDbSet>();
 
         public static DbContext GetInstance()
         {
@@ -61,17 +62,21 @@ namespace ORMPolar
         private void CreateTable(Type type, string fullName)
         {
             //получаем все поля
-            var fields = type.GetFields(BindingFlags.Instance|BindingFlags.NonPublic|BindingFlags.Public);
-            
+            var fields = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
+
+            NamedType[] temp =
+                fields
+                    .Select<PropertyInfo, NamedType>(propertyInfo =>
+                        new NamedType(propertyInfo.Name, GetPolarType(propertyInfo.PropertyType)))
+                    .ToArray<NamedType>();
+
             PType typeCell = new PTypeSequence(
                 new PTypeRecord(
-                fields
-                    .Select<FieldInfo, NamedType>(fieldInfo => 
-                        new NamedType(fieldInfo.Name, GetPolarType(fieldInfo.FieldType)))
-                    .ToArray<NamedType>()
+                    new NamedType[] { new NamedType("deleted", new PType(PTypeEnumeration.boolean)) }.
+                    Concat<NamedType>(temp).ToArray<NamedType>()
                 )
             );
-            PaCell table = new PaCell(typeCell,fullName,false);
+            PaCell table = new PaCell(typeCell, fullName, false);
             sTables.Add(type,table);
             sTablePaths.Add(type, fullName);
         }

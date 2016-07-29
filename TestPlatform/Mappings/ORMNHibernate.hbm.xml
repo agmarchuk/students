@@ -1,30 +1,77 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" auto-import="true" 
-                   assembly="TestPlatform" namespace="TestPlatform">
+                   assembly="TestPlatform" namespace="TestPlatform
+                   ">
 
-  <class name="TestPlatform.BookLibrary+Book" table="Book" dynamic-update="true">
-    
+  <class name="TestPlatform.NorthWind+Customer" table="Customers" dynamic-update="true">
+
     <cache usage="read-write"/>
-    
-    <id name="id" type="System.Int32">
+
+    <id name="Id" type="System.Int32">
       <generator class="native" />
     </id>
-    <property name="title" column="title"/>
-    <property name="pages" type="System.Int32" column="pages"/>
-  </class>
+    <property name="Name"/>
 
- <class name="TestPlatform.BookLibrary+Author" table="Author" dynamic-update="true">
-    <cache usage="read-write"/>
+    <bag name="Orders"
+				inverse="true" lazy="true">
+      <key>
+        <column name="CustomerId" not-null="true" />
+      </key>
+      <one-to-many class="TestPlatform.NorthWind+Order" />
+    </bag>
     
-    <id name="id" type="System.Int32">
+  
+</class>
+
+  <class name="TestPlatform.NorthWind+Order" table="Orders" dynamic-update="true">
+
+    <cache usage="read-write"/>
+
+    <id name="Id" type="System.Int32">
       <generator class="native" />
     </id>
-    <property name="name" column="title"/>
+    <!--<property name="CustomerId"/>-->
+    <property name="Title"/>
 
-    <set name="books" table="bookAuthor">
-      <key column="authorId"/>
-      <many-to-many class="TestPlatform.BookLibrary+Book" column="bookId"/>
-    </set>
+    <many-to-one name="Customer" class="TestPlatform.NorthWind+Customer" fetch="select">
+      <column name="CustomerId" not-null="true" />
+    </many-to-one>
+    <bag name="OrderItems" 
+				inverse="true" lazy="true">
+      <key>
+        <column name="OrderId" not-null="true" />
+      </key>
+      <one-to-many class="TestPlatform.NorthWind+OrderItems" />
+    </bag>
   </class>
 
+  <class name="TestPlatform.NorthWind+OrderItem" table="OrderItems" dynamic-update="true">
+
+    <cache usage="read-write"/>
+
+    <id name="Id" type="System.Int32">
+      <generator class="native" />
+    </id>
+    <property name="OrderId"/>
+    <property name="ProductId"/>
+    <property name="Quantity"/>
+
+    <many-to-one name="Order" class="TestPlatform.NorthWind+Order" fetch="select">
+      <column name="OrderId" not-null="true" />
+    </many-to-one>
+    <many-to-one name="Products" class="TestPlatform.NorthWind+Product" fetch="select">
+      <column name="ProductId" not-null="true" />
+    </many-to-one>
+  </class>
+
+  <class name="TestPlatform.NorthWind+Product" table="Products" dynamic-update="true">
+    <cache usage="read-write"/>
+
+    <id name="Id" type="System.Int32">
+      <generator class="native" />
+    </id>
+    <property name="Name"/>
+    <property name="Price"/>
+  </class>
+  
 </hibernate-mapping>

@@ -4,15 +4,19 @@
 //using System.Text;
 //using System.Threading.Tasks;
 //using PolarDB;
-//using ExtendedIndexBTree;
+//using PolarHashTable;
 //using System.IO;
-////using Common;
 
 //namespace TestPlatform.SpeedTests
 //{
-//    class TestPolarDB : IPerformanceTest
+//    public class TestExHashTableIndexPolar : IPerformanceTest
 //    {
-//        System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+//        private System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+//        private string path = "../../../Databases/";
+
+//        private PType tp, hashType;
+//        public static PaCell booksDB;
+//        public ExHTIndex title_index;
 
 //        #region Comparers
 //        private Func<object, object, int> stringElementComparer = (object ob1, object ob2) =>
@@ -25,7 +29,7 @@
 
 //            if (hash1 == hash2) //идем в опорную таблицу, если хеши равны
 //            {
-//                PaEntry entry = Books.Root.Element(0);
+//                PaEntry entry = booksDB.Root.Element(0);
 //                long offset1 = (long)node1[0];
 //                long offset2 = (long)node2[0];
 
@@ -79,7 +83,7 @@
 
 //            if (hash1 == hash2) //идем в опорную таблицу, если хеши равны
 //            {
-//                PaEntry entry = Books.Root.Element(0);
+//                PaEntry entry = booksDB.Root.Element(0);
 //                entry.offset = (long)node2[0];
 //                object[] pair2 = (object[])entry.Get();
 //                string value2 = (string)pair2[1];
@@ -91,112 +95,65 @@
 //        };
 //        #endregion
 
-//        static PaCell Books;
-//        BTreeInd id_author_index, title_index;
-//        string path = "../../../../Databases/";
-
-//        public long CreateDB(int size)
+//        long IPerformanceTest.CreateDB(int N)
 //        {
 //            sw.Reset();
-//            Random rnd = new Random();
 
 //            //задаём тип для записи в ячейку БД
-//            PType TBooks = new PTypeSequence(
-//                new PTypeRecord(
-//                    new NamedType("id", new PType(PTypeEnumeration.integer)),
-//                    new NamedType("title", new PType(PTypeEnumeration.sstring)),
-//                    new NamedType("pages", new PType(PTypeEnumeration.integer)),
-//                    new NamedType("id_author", new PType(PTypeEnumeration.integer))
-//                )
+//            tp = new PTypeSequence(new PTypeRecord(
+//                new NamedType("id", new PType(PTypeEnumeration.longinteger)),
+//                new NamedType("title", new PType(PTypeEnumeration.sstring)),
+//                new NamedType("id_author", new PType(PTypeEnumeration.longinteger)),
+//                new NamedType("deleted", new PType(PTypeEnumeration.boolean)))
 //            );
 
-//            //создаём БД
-//            Books = new PaCell(TBooks, path + "Books.pac", false);
-//            //очистка БД
-//            Books.Clear();
-//            Books.Fill(new object[0]);
-
-//            PType tp_id_author_index = new PTypeRecord(
-//                new NamedType("offset", new PType(PTypeEnumeration.longinteger)),
-//                new NamedType("id", new PType(PTypeEnumeration.integer))
-//            );
-
-//            //узел дерева состоит из офсета и хешкода
-//            PType tp_title_index = new PTypeRecord(
-//                new NamedType("offset", new PType(PTypeEnumeration.longinteger)),
-//                new NamedType("hash", new PType(PTypeEnumeration.integer))
-//            );
-
-//            id_author_index = new BTreeInd(tp_id_author_index, intKeyComparer, intElementComparer, path + "id_author_index.pxc");
-//            title_index = new BTreeInd(tp_title_index, stringKeyComparer, stringElementComparer, path + "title_index.pxc");
-
-//            for (int i = 0; i < size; ++i)
+//            //if (!System.IO.File.Exists(path + "Books.pac"))
 //            {
-//                int id_author = (rnd.Next(size) + rnd.Next(size)) % size;
-//                string title = "book" + i;
-//                object book = new object[]
-//                {
-//                    i,
-//                    title,
-//                    1001,
-//                    id_author
-//                };
-//                sw.Start();
-//                long off = Books.Root.AppendElement(book);
-//                id_author_index.AppendElement(new object[] { off, id_author });
-//                title_index.AppendElement(new object[] { off, title.GetHashCode() });
-//                sw.Stop();
+//                //создаём БД
+//                booksDB = new PaCell(tp, path + "Books.pac", false);
+//                //очистка БД
+//                booksDB.Clear();
+//                booksDB.Fill(new object[0]);
 //            }
 
-//            Books.Flush();
+//            hashType = new PTypeRecord(
+//                new NamedType("hash", new PType(PTypeEnumeration.longinteger)),//указатель на определенный лист в листе оффсетов на ключи опорной таблицы
+//                new NamedType("offsets", new PTypeSequence(new PType(PTypeEnumeration.longinteger)))
+//            );
+//            title_index = new ExHTIndex(hashType, stringKeyComparer, booksDB, path);
+
+//            for (int i = 0; i < N; ++i)
+//            {
+//                string temp = "book" + i;
+//                long newCode = booksDB.Root.Count();
+//                sw.Start();
+//                    long offset = booksDB.Root.AppendElement(new object[] { newCode, temp, (long)i, false });
+//                    title_index.AppendElement(new object[] { offset, (long)title_index.GetHashCode(temp) });
+//                sw.Stop();
+//            }
+//            sw.Start();
+//                booksDB.Flush();
+//                title_index.Flush();
+//            sw.Stop();
+
 //            return sw.ElapsedMilliseconds;
 //        }
 
-//        public void DeleteDB()
+//        void IPerformanceTest.DeleteDB()
 //        {
-//            Books.Close();
-//            id_author_index.Close();
+//            booksDB.Close();
 //            title_index.Close();
-//            File.Delete(path + "id_author_index.pxc");
-//            File.Delete(path + "title_index.pxc");
+//            File.Delete(path + "hashTableIndex.pac");
 //            File.Delete(path + "Books.pac");
 //        }
 
-//        public long FindFirst(int repeats, string fieldName)
-//        {
-//            sw.Reset();
-
-//            long offset = 0;
-//            Random rnd = new Random();
-//            int N = (int)Books.Root.Count();
-
-//            if (fieldName == "title")
-//                for (int i = 0; i < repeats; ++i)
-//                {
-//                    int r = (rnd.Next(N) + rnd.Next(N)) % N;
-//                    sw.Start();
-//                    offset = title_index.FindFirst((object)("book" + r));
-//                    sw.Stop();
-//                }
-//            else
-//                for (int i = 0; i < repeats; ++i)
-//                {
-//                    int r = (rnd.Next(N) + rnd.Next(N)) % N;
-//                    sw.Start();
-//                    offset = id_author_index.FindFirst((object)r);
-//                    sw.Stop();
-//                }
-
-//            return sw.ElapsedMilliseconds;
-//        }
-
-//        public long FindAll(int repeats, string fieldName)
+//        long IPerformanceTest.FindAll(int repeats, string fieldName)
 //        {
 //            sw.Reset();
 
 //            List<long> offsets = new List<long>();
 //            Random rnd = new Random();
-//            int N = (int)Books.Root.Count();
+//            int N = (int)booksDB.Root.Count();
 
 //            if (fieldName == "title")
 //                for (int i = 0; i < repeats; ++i)
@@ -211,29 +168,44 @@
 //                {
 //                    int r = (rnd.Next(N) + rnd.Next(N)) % N;
 //                    sw.Start();
-//                    offsets = id_author_index.FindAll((object)r).ToList<long>();
+//                    //offsets = id_author_index.FindAll((object)r).ToList<long>();
 //                    sw.Stop();
 //                }
 //            return sw.ElapsedMilliseconds;
 //        }
 
-//        public long WarmUp()
+//        long IPerformanceTest.FindFirst(int repeats, string fieldName)
 //        {
 //            sw.Reset();
 //            Random rnd = new Random();
-//            int N = (int)Books.Root.Count();
-//            List<long> offsets = new List<long>();
+//            long offset = 0;
+//            int N = (int)booksDB.Root.Count();
 
-//            foreach (var book in Books.Root.ElementValues()) { }
+//            if (fieldName == "title")
+//                for (int i = 0; i < repeats; ++i)
+//                {
+//                    int r = (rnd.Next(N) + rnd.Next(N)) % N;
+//                    sw.Start();
+//                    offset = title_index.FindFirst((object)("book" + r));
+//                    sw.Stop();
+//                }
+//            else
+//                for (int i = 0; i < repeats; ++i)
+//                {
+//                    int r = (rnd.Next(N) + rnd.Next(N)) % N;
+//                    sw.Start();
+//                    //offset = id_author_index.FindFirst((object)r);
+//                    sw.Stop();
+//                }
+//            return sw.ElapsedMilliseconds;
+//        }
 
-//            for (int i = 0; i < 1000; ++i)
-//            {
-//                int r = (rnd.Next(N) + rnd.Next(N)) % N;
-//                sw.Start();
-//                offsets = id_author_index.FindAll((object)r).ToList<long>();
-//                offsets = title_index.FindAll((object)("book" + r)).ToList<long>();
-//                sw.Stop();
-//            }
+//        long IPerformanceTest.WarmUp()
+//        {
+//            sw.Start();
+//                foreach (var rec in booksDB.Root.Elements()) { }
+//                foreach (var rec in title_index.Root.Elements()) { }
+//            sw.Stop();
 //            return sw.ElapsedMilliseconds;
 //        }
 //    }

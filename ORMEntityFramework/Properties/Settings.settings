@@ -5,16 +5,9 @@
     <Setting Name="DbConnection" Type="(Connection string)" Scope="Application">
       <DesignTimeValue Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
 &lt;SerializableConnectionString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
-  &lt;ConnectionString&gt;Data Source=(LocalDB)\ProjectsV12;Initial Catalog=BookStoreEF;Integrated Security=True;Pooling=False;Connect Timeout=3&lt;/ConnectionString&gt;
+  &lt;ConnectionString&gt;Server=(localdb)\v11.0; Initial Catalog=NorthWind;Integrated Security=True;Connect Timeout=3&lt;/ConnectionString&gt;
 &lt;/SerializableConnectionString&gt;</DesignTimeValue>
-      <Value Profile="(Default)">Data Source=(LocalDB)\ProjectsV12;Initial Catalog=BookStoreEF;Integrated Security=True;Pooling=False;Connect Timeout=3</Value>
-    </Setting>
-    <Setting Name="DbConnection2" Type="(Connection string)" Scope="Application">
-      <DesignTimeValue Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
-&lt;SerializableConnectionString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
-  &lt;ConnectionString&gt;Data Source=MAKC-NB\SQLEXPRESS;Initial Catalog=BookStoreEF; User ID=sa;Password=123; Integrated Security=True;Pooling=False;Connect Timeout=3&lt;/ConnectionString&gt;
-&lt;/SerializableConnectionString&gt;</DesignTimeValue>
-      <Value Profile="(Default)">Data Source=MAKC-NB\SQLEXPRESS;Initial Catalog=BookStoreEF; User ID=sa;Password=123; Integrated Security=True;Pooling=False;Connect Timeout=3</Value>
+      <Value Profile="(Default)">Server=(localdb)\v11.0; Initial Catalog=NorthWind;Integrated Security=True;Connect Timeout=3</Value>
     </Setting>
   </Settings>
 </SettingsFile>

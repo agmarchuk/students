@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="TestPlatform.LaunchingTest">
+    <Position X="6.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AQAAAAAAAAAAAgCAAAAAABAAAAAAAAAAAAAABQAAAAA=</HashCode>
+      <FileName>LaunchingTest.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TestPlatform.Properties.Settings">
+    <Position X="6.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAACAAAAAAAAAAAAAAIAAAAAABAAAAAAAAAAAAAAA=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TestPlatform.SpeedTests.TestORMEntityFramework" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="0.5" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAEAABAAAAAAAAAAAAQAAAAAAAAAAEAAAAAAQAQBAA=</HashCode>
+      <FileName>SpeedTests\TestORMEntityFramework.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TestPlatform.SpeedTests.TestORMNHibernate" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="0.5" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIEAQBAAAAAAAAAAAEgAAAAEAABAAEAIAACiAABAAA=</HashCode>
+      <FileName>SpeedTests\TestORMNHibernate.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="TestPlatform.SpeedTests.TestORMPolarDB" BaseTypeListCollapsed="true">
+    <Position X="2" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIEAQBAAAAAAAAACAAwAAAAEAAhAAEAIAACCAABBAA=</HashCode>
+      <FileName>SpeedTests\TestORMPolarDB.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Interface Name="TestPlatform.SpeedTests.IPerformanceTest">
+    <Position X="0.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAABAAAAAAAAAAAAAAAAAEAABAAAAAAACAAAAAAA=</HashCode>
+      <FileName>SpeedTests\IPerformanceTest.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
